@@ -1,0 +1,15 @@
+[package]
+name = "tomu-hal"
+version = "0.1.0"
+authors = ["Nurahmadie <nurahmadie@gmail.com>"]
+
+[dependencies]
+efm32hg309f64 = { path = "../efm32hg309f64" }
+tomu-hal-macros = { path = "macros", optional = true }
+embedded-hal = "0.2.1"
+
+[target.'cfg(not(target_os = "none"))'.dev-dependencies]
+compiletest_rs = "0.3.17"
+
+[features]
+toboot-custom-config = ["tomu-hal-macros"]

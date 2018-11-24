@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "efm32hg309f64",
+    "tomu_hal",
+    "sandbox",
+]

@@ -1,0 +1,13 @@
+[package]
+name = "efm32hg309f64"
+version = "0.1.0"
+authors = ["Nurahmadie <nurahmadie@gmail.com>"]
+
+[dependencies]
+bare-metal = "0.2.3"
+cortex-m = "0.5.7"
+vcell = "*"
+cortex-m-rt = { optional = true, version = "0.6.5" }
+
+[features]
+rt = ["cortex-m-rt/device"]

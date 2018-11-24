@@ -1,0 +1,19 @@
+[package]
+name = "tomu-hal-macros"
+version = "0.1.0"
+authors = ["Nurahmadie <nurahmadie@gmail.com>"]
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "0.6.10"
+proc-macro2 = "0.4.24"
+
+[dependencies.syn]
+features = ["extra-traits", "full"]
+version = "0.15.13"
+
+[dev-dependencies]
+tomu-hal = { path = ".." }
