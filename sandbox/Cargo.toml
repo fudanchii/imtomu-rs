@@ -5,7 +5,7 @@ authors = ["Nurahmadie <nurahmadie@gmail.com>"]
 
 [dependencies]
 efm32hg309f64 = { path = "../efm32hg309f64", features = ["rt"] }
-tomu-hal = { path = "../tomu_hal", features = ["toboot-custom-config"] }
+tomu-hal = { path = "../hal", features = ["toboot-custom-config"] }
 panic-halt = "*"
 cortex-m-rt = "*"
 
