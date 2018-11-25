@@ -1,3 +1,5 @@
+#![feature(proc_macro_diagnostic)]
+
 extern crate proc_macro;
 extern crate proc_macro2;
 extern crate quote;
@@ -9,6 +11,7 @@ use syn::parse;
 use syn::{
     parse::{Parse, ParseStream, Result},
     parse_macro_input, Expr, ExprArray, Ident, LitBool, LitInt, Token,
+    spanned::Spanned,
 };
 
 const TOBOOT_LOCK_ENTRY_MAGIC: u32 = 0x18349420;
@@ -33,7 +36,7 @@ impl Parse for ParsedTobootConfig {
             }
 
             if !input.peek(Ident) {
-                return Err(input.error("expecting identifier"));
+                return Err(input.error("expecting identifier, either `config`, `lock_entry`, `erase_mask_lo`, and/or `erase_mask_hi`"));
             }
 
             let id: Ident = input.parse()?;
@@ -48,7 +51,7 @@ impl Parse for ParsedTobootConfig {
                             result_config.config = Some(exp_array);
                         },
                         _ => {
-                            return Err(input.error("expecting array of configuration flags"));
+                            return Err(input.error("expecting array of configuration flags, e.g. [autorun_enable]"));
                         },
                     }
                 },
@@ -111,8 +114,8 @@ impl ParsedTobootConfig {
             result = match &*flag_id.to_string() {
                 "irq_enable" => result | 1,
                 "autorun_enable" => result | 2,
-                s => return Err(self.new_error(&format!(
-                    "config `{}` not supported, supported config: `irq_enable`, `autorun_enable`",
+                s => return Err(self.new_error(flag_id.span(), &format!(
+                    "config `{}` is not supported, supported config: `irq_enable`, `autorun_enable`",
                     s
                 ))),
             }
@@ -125,17 +128,17 @@ impl ParsedTobootConfig {
         match expr {
             Expr::Path(expr_path) => {
                 if expr_path.path.segments.len() != 1 {
-                    return Err(self.new_error("unexpected path, expecting identifier here"));
+                    return Err(self.new_error(expr.span(), "unexpected path, expecting config flags, supported config: `irq_enable`, `autorun_enable`"));
                 }
 
                 Ok(expr_path.path.segments[0].ident.clone())
             }
-            _ => Err(self.new_error("unexpected token, expecting identifier here")),
+            _ => Err(self.new_error(expr.span(), "unexpected token, expecting config flags, supported config: `irq_enable`, `autorun_enable`")),
         }
     }
 
-    fn new_error(&self, msg: &str) -> parse::Error {
-        parse::Error::new(Span::call_site(), msg)
+    fn new_error(&self, span: Span, msg: &str) -> parse::Error {
+        parse::Error::new(span, msg)
     }
 }
 
@@ -198,7 +201,12 @@ pub fn toboot_config(input: crate::proc_macro::TokenStream) -> crate::proc_macro
     let erase_mask_lo_val = parsed_config.erase_mask_lo_val();
     let erase_mask_hi_val = parsed_config.erase_mask_hi_val();
 
-    if lock_val == TOBOOT_LOCK_ENTRY_MAGIC {}
+    if lock_val == TOBOOT_LOCK_ENTRY_MAGIC {
+        parsed_config.lock_entry.span()
+            .unstable()
+            .warning("*CAUTION* this will lock you from entering bootloader")
+            .emit();
+    }
 
     let result = quote! {
         #[used]

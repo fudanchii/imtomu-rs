@@ -14,7 +14,8 @@ use tomu_hal::toboot_config;
 /// toboot_config! { }
 /// ```
 toboot_config! {
-    config: [],
+    // enable autorun
+    config: [autorun_enable],
     lock_entry: false,
     erase_mask_lo: 0,
     erase_mask_hi: 0,
