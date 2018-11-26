@@ -17,7 +17,6 @@ use tomu_hal::{
 /// toboot_config! { }
 /// ```
 toboot_config! {
-    // enable autorun
     config: [],
     lock_entry: false,
     erase_mask_lo: 0,
@@ -49,8 +48,8 @@ fn main() -> ! {
     //
     // green_led.on();
     // red_led.off();
-    pa0.set_low();  // on
-    pb7.set_high(); // off
+    pa0.set_high();  // on
+    pb7.set_low(); // off
 
 
     loop {}

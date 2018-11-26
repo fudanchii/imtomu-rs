@@ -64,8 +64,9 @@ impl Parse for ParsedTobootConfig {
                 "erase_mask_hi" => {
                     result_config.erase_mask_hi = Some(input.parse()?);
                 },
-                _ => return Err(input.error(
-                        &format!("unexpected identifier `{}`, expecting either `config`, `lock_entry`, `erase_mask_lo`, and/or `erase_mask_hi`", id.to_string())
+                _ => return Err(parse::Error::new(
+                    id.span(),
+                    &format!("unexpected identifier `{}`, expecting either `config`, `lock_entry`, `erase_mask_lo`, and/or `erase_mask_hi`", id.to_string())
                 )),
             }
 
