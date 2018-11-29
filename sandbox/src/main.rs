@@ -9,7 +9,7 @@ use cortex_m_rt::entry;
 use tomu_hal::{
     peripherals,
     toboot_config,
-    gpio::{OpenDrain, pin},
+    led::LedTrait,
 };
 
 /// this works too:
@@ -25,32 +25,12 @@ toboot_config! {
 
 #[entry]
 fn main() -> ! {
-    let p = peripherals::take();
+    let mut p = peripherals::take();
 
-    p.watchdog_disable();
+    p.watchdog.disable();
 
-    // or
-    // ```
-    // let pa0 = p.gpio.split::<pin::A0<WiredAnd>>();
-    // let pb7 = p.gpio.split::<pin::B7<WiredAnd>>();
-    // ```
-    let mut pa0 = p.gpio.split::<pin::A0<OpenDrain>>();
-    let mut pb7 = p.gpio.split::<pin::B7<OpenDrain>>();
-
-    // or, if using led hal
-    // ```
-    // use tomu_hal::led;
-    //
-    // // ...
-    //
-    // let green_led = p.led.green();
-    // let red_led = p.led.red();
-    //
-    // green_led.on();
-    // red_led.off();
-    pa0.set_high();  // on
-    pb7.set_low(); // off
-
+    p.led.green().on();
+    p.led.red().off();
 
     loop {}
 }

@@ -1,6 +1,10 @@
 use efm32;
 
+/// Disable Input/Output no pullup
 pub struct Disabled;
+
+/// Disable Input/Output with pullup
+pub struct DisabledPullUp;
 
 /// input MODE will be either:
 /// - NoFilter   // no pull
@@ -69,7 +73,7 @@ impl GPIO {
     pub fn take(cmu: &mut efm32::CMU) -> Self {
         cmu.hfperclken0.modify(|_, w| w.gpio().bit(true));
 
-        GPIO {}
+        GPIO
     }
 
     pub fn split<MODE: GPIOPinSplitter>(&self) -> MODE::GPIOPin {
@@ -98,6 +102,23 @@ macro_rules! gpio_pin_splitter {
                 $pin_struct { _m: PhantomData }
             }
         }
+    };
+
+    ($pin_struct:ident,
+     $io_mode:ident,
+     $modegroup:ident,
+     $mode:ident,
+     $setter:ident,
+     $stmt:expr) => {
+        impl GPIOPinSplitter for $pin_struct<$io_mode> {
+            type GPIOPin = $pin_struct<$io_mode>;
+
+            fn split() -> Self::GPIOPin {
+                unsafe { (*efm32::GPIO::ptr()).$modegroup.modify(|_, w| w.$mode().$setter()) };
+                $stmt;
+                $pin_struct { _m: PhantomData }
+            }
+        }
     }
 }
 
@@ -107,12 +128,12 @@ macro_rules! gpio_out_impl {
      $shift: expr,
      $outset:ident,
      $outclr:ident) => {
-        impl<$io_mode> $pin_struct<$io_mode> {
-            pub fn set_low(&mut self) {
+        impl<$io_mode> OutputPin for $pin_struct<$io_mode> {
+            fn set_low(&mut self) {
                 unsafe { (*efm32::GPIO::ptr()).$outclr.write(|w| w.bits(1 << $shift)) };
             }
 
-            pub fn set_high(&mut self) {
+            fn set_high(&mut self) {
                 unsafe { (*efm32::GPIO::ptr()).$outset.write(|w| w.bits(1 << $shift)) };
             }
         }
@@ -135,15 +156,44 @@ macro_rules! gpio {
             _m: PhantomData<Mode>,
         }
 
-        gpio_pin_splitter!($pin_struct, WiredAnd, $modegroup, $mode, wiredand);
+        // Disabled pin variants
+        gpio_pin_splitter!($pin_struct, Disabled, $modegroup, $mode, disabled);
+        gpio_pin_splitter!($pin_struct, DisabledPullUp, $modegroup, $mode, disabled,
+                           unsafe { (*efm32::GPIO::ptr()).$outset.write(|w| w.bits(1 << $shift)) });
 
+        // Output pin variants
+        gpio_pin_splitter!($pin_struct, PushPull, $modegroup, $mode, pushpull);
+        gpio_pin_splitter!($pin_struct, PushPullDrive, $modegroup, $mode, pushpulldrive);
+        gpio_pin_splitter!($pin_struct, WiredOr, $modegroup, $mode, wiredor);
+        gpio_pin_splitter!($pin_struct, WiredOrPullDown, $modegroup, $mode, wiredorpulldown);
+        gpio_pin_splitter!($pin_struct, WiredAnd, $modegroup, $mode, wiredand);
+        gpio_pin_splitter!($pin_struct, WiredAndWithFilter, $modegroup, $mode, wiredandfilter);
+        gpio_pin_splitter!($pin_struct, WiredAndPullUp, $modegroup, $mode, wiredandpullup);
+        gpio_pin_splitter!($pin_struct, WiredAndPullUpWithFilter, $modegroup, $mode, wiredandpullupfilter);
+        gpio_pin_splitter!($pin_struct, WiredAndDrive, $modegroup, $mode, wiredanddrive);
+        gpio_pin_splitter!($pin_struct, WiredAndDriveWithFilter, $modegroup, $mode, wiredanddrivefilter);
+        gpio_pin_splitter!($pin_struct, WiredAndDrivePullUp, $modegroup, $mode, wiredanddrivepullup);
+        gpio_pin_splitter!($pin_struct, WiredAndDrivePullUpWithFilter, $modegroup, $mode, wiredanddrivepullupfilter);
+
+        gpio_out_impl!($pin_struct, PushPull, $shift, $outset, $outclr);
+        gpio_out_impl!($pin_struct, PushPullDrive, $shift, $outset, $outclr);
+        gpio_out_impl!($pin_struct, WiredOr, $shift, $outset, $outclr);
+        gpio_out_impl!($pin_struct, WiredOrPullDown, $shift, $outset, $outclr);
         gpio_out_impl!($pin_struct, WiredAnd, $shift, $outset, $outclr);
+        gpio_out_impl!($pin_struct, WiredAndWithFilter, $shift, $outset, $outclr);
+        gpio_out_impl!($pin_struct, WiredAndPullUp, $shift, $outset, $outclr);
+        gpio_out_impl!($pin_struct, WiredAndPullUpWithFilter, $shift, $outset, $outclr);
+        gpio_out_impl!($pin_struct, WiredAndDrive, $shift, $outset, $outclr);
+        gpio_out_impl!($pin_struct, WiredAndDriveWithFilter, $shift, $outset, $outclr);
+        gpio_out_impl!($pin_struct, WiredAndDrivePullUp, $shift, $outset, $outclr);
+        gpio_out_impl!($pin_struct, WiredAndDrivePullUpWithFilter, $shift, $outset, $outclr);
     }
 }
 
 pub mod pin {
     use super::*;
     use core::marker::PhantomData;
+    use embedded_hal::digital::OutputPin;
 
     gpio!(A0, mode0, 0, pa_ctrl, pa_model, pa_dout, pa_doutset, pa_doutclr, pa_douttgl, pa_din, pa_pinlockn);
     gpio!(B7, mode7, 7, pb_ctrl, pb_model, pb_dout, pb_doutset, pb_doutclr, pb_douttgl, pb_din, pb_pinlockn);
