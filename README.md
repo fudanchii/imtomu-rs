@@ -39,6 +39,7 @@ toboot_config! {
 }
 ```
 
+Toboot api ref: [here](https://github.com/im-tomu/tomu-bootloader/blob/master/API.md).
 
 sandbox
 ---
