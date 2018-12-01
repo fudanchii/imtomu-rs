@@ -47,10 +47,12 @@ impl Capacitive {
         }
     }
 
+    /// Mutably borrow first button (on the right)
     pub fn c0(&mut self) -> &mut Button<C0<InputPullDown>, E12<OpenDrain>> {
         &mut self.c0
     }
 
+    /// Mutably borrow second button (on the left)
     pub fn c1(&mut self) -> &mut Button<C1<InputPullDown>, E13<OpenDrain>> {
         &mut self.c1
     }
