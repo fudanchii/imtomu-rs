@@ -43,4 +43,4 @@ Toboot api ref: [here](https://github.com/im-tomu/tomu-bootloader/blob/master/AP
 
 sandbox
 ---
-In sandbox folder there's a demo to show how use capacitive touch input, to turn on green led alternating with the red led.
+In sandbox folder there's a demo to show how to use capacitive touch input to turn on green led alternating with the red led.
