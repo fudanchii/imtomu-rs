@@ -26,7 +26,9 @@ impl Watchdog {
 
 /// Holds all available tomu peripherals
 pub struct Peripherals {
-    pub p: efm32::Peripherals,
+    #[allow(dead_code)]
+    p: efm32::Peripherals,
+
     pub gpio: gpio::GPIO,
     pub watchdog: Watchdog,
     pub led: led::LED,
@@ -38,7 +40,7 @@ pub struct Peripherals {
 pub fn take() -> Peripherals {
     let mut p = efm32::Peripherals::take().unwrap();
 
-    let mut our_gpio = gpio::GPIO::take(&mut p.CMU);
+    let mut our_gpio = gpio::GPIO::new(&mut p.CMU);
     let led = led::LED::new(&mut our_gpio);
 
     Peripherals {

@@ -6,7 +6,7 @@ authors = ["Nurahmadie <nurahmadie@gmail.com>"]
 [dependencies]
 efm32hg309f64 = { path = "../efm32hg309f64" }
 tomu-hal-macros = { path = "macros", optional = true }
-embedded-hal = "0.2.1"
+embedded-hal = { version = "0.2.1", features = ["unproven"] }
 
 [target.'cfg(not(target_os = "none"))'.dev-dependencies]
 compiletest_rs = "0.3.17"
