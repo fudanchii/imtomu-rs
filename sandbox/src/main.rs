@@ -11,10 +11,7 @@ use tomu_hal::{
     peripherals,
     toboot_config,
     led::LedTrait,
-    gpio::{pin, OpenDrain, InputPullDown},
 };
-
-use embedded_hal::digital::{OutputPin, InputPin};
 
 /// this works too:
 /// ```
@@ -22,32 +19,24 @@ use embedded_hal::digital::{OutputPin, InputPin};
 /// ```
 toboot_config! {
     config: [autorun_enable],
-    lock_entry: false,
-    erase_mask_lo: 0,
-    erase_mask_hi: 0,
 }
 
 #[entry]
 fn main() -> ! {
     let mut p = peripherals::take();
 
-    let pin_c0      = p.gpio.split::<pin::C0<InputPullDown>>();
-    let mut pin_e12 = p.gpio.split::<pin::E12<OpenDrain>>();
-
     p.watchdog.disable();
 
-    p.led.green().off();
-    p.led.red().on();
-
-    pin_e12.set_high();
+    p.led.green().on();
+    p.led.red().off();
 
     let mut counter = 0;
 
     loop {
-        if pin_c0.is_high() {
-            pin_e12.set_low();
-            p.led.green().on();
-            p.led.red().off();
+        if p.cap.c0().is_pressed() {
+            p.cap.c0().release();
+            p.led.red().on();
+            p.led.green().off();
             counter = 2000000;
         }
 
@@ -56,9 +45,9 @@ fn main() -> ! {
         }
 
         if counter == 0 {
-            pin_e12.set_high();
-            p.led.green().off();
-            p.led.red().on();
+            p.cap.c0().hold();
+            p.led.red().off();
+            p.led.green().on();
         }
     }
 }

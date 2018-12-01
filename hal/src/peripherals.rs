@@ -1,5 +1,6 @@
 use gpio;
 use led;
+use capacitive;
 use efm32;
 
 /// Watchdog peripheral for tomu board.
@@ -32,6 +33,7 @@ pub struct Peripherals {
     pub gpio: gpio::GPIO,
     pub watchdog: Watchdog,
     pub led: led::LED,
+    pub cap: capacitive::Capacitive,
 }
 
 /// Take `Peripherals`  instance, this is called `take`
@@ -42,11 +44,13 @@ pub fn take() -> Peripherals {
 
     let mut our_gpio = gpio::GPIO::new(&mut p.CMU);
     let led = led::LED::new(&mut our_gpio);
+    let cap = capacitive::Capacitive::new(&mut our_gpio);
 
     Peripherals {
         p: p,
         gpio: our_gpio,
         led: led,
         watchdog: Watchdog,
+        cap: cap,
     }
 }
