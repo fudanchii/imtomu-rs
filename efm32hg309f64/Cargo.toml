@@ -2,6 +2,8 @@
 name = "efm32hg309f64"
 version = "0.1.0"
 authors = ["Nurahmadie <nurahmadie@gmail.com>"]
+description = "SVD2Rust generated board support package for EFM32 Happy Gecko, specifically for efm32hg309f64 ARMv6-M Cortex-M0 MCU."
+license = "MIT"
 
 [dependencies]
 bare-metal = "0.2.3"
