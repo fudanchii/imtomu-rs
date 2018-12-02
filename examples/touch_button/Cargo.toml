@@ -4,8 +4,8 @@ version = "0.1.0"
 authors = ["Nurahmadie <nurahmadie@gmail.com>"]
 
 [dependencies]
-efm32hg309f64 = { path = "../efm32hg309f64", features = ["rt"] }
-tomu-hal = { path = "../hal", features = ["toboot-custom-config"] }
+efm32hg309f64 = { path = "../../efm32hg309f64", features = ["rt"] }
+tomu-hal = { path = "../../hal", features = ["toboot-custom-config"] }
 panic-halt = "*"
 cortex-m-rt = "*"
 embedded-hal = { version = "*", features = ["unproven"] }
