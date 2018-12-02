@@ -9,7 +9,7 @@ pub struct Watchdog;
 impl Watchdog {
     /// Disable watchdog, this will prevent the need to refresh
     /// watchdog timer.
-    pub fn disable(&self) {
+    pub fn disable(&mut self) {
         unsafe {
             (*efm32::WDOG::ptr()).ctrl.write(|w| w.bits(0));
         }
@@ -18,10 +18,15 @@ impl Watchdog {
     /// By default Tomu boot loader activate watchdog, and it
     /// will need to be refreshed before 9 seconds elapsed.
     /// Call this method to pet the watchdog.
-    pub fn refresh(&self) {
+    pub fn refresh(&mut self) {
         unsafe {
             (*efm32::WDOG::ptr()).cmd.write(|w| w.bits(1));
         }
+    }
+
+    /// Alias to refresh
+    pub fn pet(&mut self) {
+        self.refresh();
     }
 }
 

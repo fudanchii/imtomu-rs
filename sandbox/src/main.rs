@@ -25,8 +25,6 @@ toboot_config! {
 fn main() -> ! {
     let mut p = peripherals::take();
 
-    p.watchdog.disable();
-
     p.led.green().on();
     p.led.red().off();
 
@@ -57,5 +55,7 @@ fn main() -> ! {
             p.cap.c0().hold();
             p.cap.c1().hold();
         }
+
+        p.watchdog.pet();
     }
 }
