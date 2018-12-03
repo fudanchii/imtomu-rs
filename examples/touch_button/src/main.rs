@@ -27,17 +27,17 @@ fn main() -> ! {
     let mut counter = 0;
 
     loop {
-        if p.cap.c0().is_pressed() {
-            p.cap.c0().release();
-            p.cap.c1().release();
+        if p.touch.cap0().is_pressed() {
+            p.touch.cap0().release();
+            p.touch.cap1().release();
             p.led.red().on();
             p.led.green().off();
             counter = 2000000;
         }
 
-        if p.cap.c1().is_pressed() {
-            p.cap.c0().release();
-            p.cap.c1().release();
+        if p.touch.cap1().is_pressed() {
+            p.touch.cap0().release();
+            p.touch.cap1().release();
             p.led.red().off();
             p.led.green().on();
             counter = 2000000;
@@ -48,8 +48,8 @@ fn main() -> ! {
         }
 
         if counter == 0 {
-            p.cap.c0().hold();
-            p.cap.c1().hold();
+            p.touch.cap0().hold();
+            p.touch.cap1().hold();
         }
 
         p.watchdog.pet();

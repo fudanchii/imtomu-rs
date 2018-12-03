@@ -38,7 +38,7 @@ pub struct Peripherals {
     pub gpio: gpio::GPIO,
     pub watchdog: Watchdog,
     pub led: led::LED,
-    pub cap: capacitive::Capacitive,
+    pub touch: capacitive::Capacitive,
 }
 
 /// Take `Peripherals`  instance, this is called `take`
@@ -56,6 +56,6 @@ pub fn take() -> Peripherals {
         gpio: our_gpio,
         led: led,
         watchdog: Watchdog,
-        cap: cap,
+        touch: cap,
     }
 }
