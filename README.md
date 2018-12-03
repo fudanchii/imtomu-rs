@@ -41,6 +41,6 @@ toboot_config! {
 
 Toboot api ref: [here](https://github.com/im-tomu/tomu-bootloader/blob/master/API.md).
 
-sandbox
+examples
 ---
-In sandbox folder there's a demo to show how to use capacitive touch input to turn on green led alternating with the red led.
+There are some examples on how to use tomu-hal in examples folder.

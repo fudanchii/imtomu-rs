@@ -25,7 +25,6 @@
 //!
 //! ```
 
-
 use efm32;
 
 /// Disable Input/Output no pullup.
@@ -51,7 +50,6 @@ pub struct InputPullDownWithFilter;
 
 /// Enable Input with pull-up resistor and glitch filter.
 pub struct InputPullUpWithFilter;
-
 
 /// Enable Input and Output in push-pull mode.
 pub struct PushPull;
@@ -141,7 +139,6 @@ pub trait GPIOPinSplitter {
     fn split() -> Self::GPIOPin;
 }
 
-
 macro_rules! gpio_pin_splitter {
     ($pin_struct:ident,
      $io_mode:ident,
@@ -152,7 +149,11 @@ macro_rules! gpio_pin_splitter {
             type GPIOPin = $pin_struct<$io_mode>;
 
             fn split() -> Self::GPIOPin {
-                unsafe { (*efm32::GPIO::ptr()).$modegroup.modify(|_, w| w.$mode().$setter()) };
+                unsafe {
+                    (*efm32::GPIO::ptr())
+                        .$modegroup
+                        .modify(|_, w| w.$mode().$setter())
+                };
                 $pin_struct { _m: PhantomData }
             }
         }
@@ -170,7 +171,9 @@ macro_rules! gpio_pin_splitter {
 
             fn split() -> Self::GPIOPin {
                 unsafe {
-                    (*efm32::GPIO::ptr()).$modegroup.modify(|_, w| w.$mode().$setter());
+                    (*efm32::GPIO::ptr())
+                        .$modegroup
+                        .modify(|_, w| w.$mode().$setter());
                     (*efm32::GPIO::ptr()).$outset.write(|w| w.bits(1 << $shift));
                 };
                 $pin_struct { _m: PhantomData }
@@ -240,17 +243,55 @@ macro_rules! gpio {
 
         // Disabled pin variants
         gpio_pin_splitter!($pin_struct, Disabled, $modegroup, $mode, disabled);
-        gpio_pin_splitter!($pin_struct, DisabledPullUp, $modegroup, $mode, disabled, $shift, $outset);
+        gpio_pin_splitter!(
+            $pin_struct,
+            DisabledPullUp,
+            $modegroup,
+            $mode,
+            disabled,
+            $shift,
+            $outset
+        );
 
         // Input pin variants
         gpio_pin_splitter!($pin_struct, Input, $modegroup, $mode, input);
-        gpio_pin_splitter!($pin_struct, InputWithFilter, $modegroup, $mode, input, $shift, $outset);
+        gpio_pin_splitter!(
+            $pin_struct,
+            InputWithFilter,
+            $modegroup,
+            $mode,
+            input,
+            $shift,
+            $outset
+        );
 
         gpio_pin_splitter!($pin_struct, InputPullDown, $modegroup, $mode, inputpull);
-        gpio_pin_splitter!($pin_struct, InputPullUp, $modegroup, $mode, inputpull, $shift, $outset);
+        gpio_pin_splitter!(
+            $pin_struct,
+            InputPullUp,
+            $modegroup,
+            $mode,
+            inputpull,
+            $shift,
+            $outset
+        );
 
-        gpio_pin_splitter!($pin_struct, InputPullDownWithFilter, $modegroup, $mode, inputpullfilter);
-        gpio_pin_splitter!($pin_struct, InputPullUpWithFilter, $modegroup, $mode, inputpullfilter, $shift, $outset);
+        gpio_pin_splitter!(
+            $pin_struct,
+            InputPullDownWithFilter,
+            $modegroup,
+            $mode,
+            inputpullfilter
+        );
+        gpio_pin_splitter!(
+            $pin_struct,
+            InputPullUpWithFilter,
+            $modegroup,
+            $mode,
+            inputpullfilter,
+            $shift,
+            $outset
+        );
 
         gpio_in_impl!($pin_struct, Input, $in, $shift);
         gpio_in_impl!($pin_struct, InputWithFilter, $in, $shift);
@@ -263,28 +304,133 @@ macro_rules! gpio {
         gpio_pin_splitter!($pin_struct, PushPull, $modegroup, $mode, pushpull);
         gpio_pin_splitter!($pin_struct, PushPullDrive, $modegroup, $mode, pushpulldrive);
         gpio_pin_splitter!($pin_struct, WiredOr, $modegroup, $mode, wiredor);
-        gpio_pin_splitter!($pin_struct, WiredOrPullDown, $modegroup, $mode, wiredorpulldown);
+        gpio_pin_splitter!(
+            $pin_struct,
+            WiredOrPullDown,
+            $modegroup,
+            $mode,
+            wiredorpulldown
+        );
         gpio_pin_splitter!($pin_struct, WiredAnd, $modegroup, $mode, wiredand);
-        gpio_pin_splitter!($pin_struct, WiredAndWithFilter, $modegroup, $mode, wiredandfilter);
-        gpio_pin_splitter!($pin_struct, WiredAndPullUp, $modegroup, $mode, wiredandpullup);
-        gpio_pin_splitter!($pin_struct, WiredAndPullUpWithFilter, $modegroup, $mode, wiredandpullupfilter);
+        gpio_pin_splitter!(
+            $pin_struct,
+            WiredAndWithFilter,
+            $modegroup,
+            $mode,
+            wiredandfilter
+        );
+        gpio_pin_splitter!(
+            $pin_struct,
+            WiredAndPullUp,
+            $modegroup,
+            $mode,
+            wiredandpullup
+        );
+        gpio_pin_splitter!(
+            $pin_struct,
+            WiredAndPullUpWithFilter,
+            $modegroup,
+            $mode,
+            wiredandpullupfilter
+        );
         gpio_pin_splitter!($pin_struct, WiredAndDrive, $modegroup, $mode, wiredanddrive);
-        gpio_pin_splitter!($pin_struct, WiredAndDriveWithFilter, $modegroup, $mode, wiredanddrivefilter);
-        gpio_pin_splitter!($pin_struct, WiredAndDrivePullUp, $modegroup, $mode, wiredanddrivepullup);
-        gpio_pin_splitter!($pin_struct, WiredAndDrivePullUpWithFilter, $modegroup, $mode, wiredanddrivepullupfilter);
+        gpio_pin_splitter!(
+            $pin_struct,
+            WiredAndDriveWithFilter,
+            $modegroup,
+            $mode,
+            wiredanddrivefilter
+        );
+        gpio_pin_splitter!(
+            $pin_struct,
+            WiredAndDrivePullUp,
+            $modegroup,
+            $mode,
+            wiredanddrivepullup
+        );
+        gpio_pin_splitter!(
+            $pin_struct,
+            WiredAndDrivePullUpWithFilter,
+            $modegroup,
+            $mode,
+            wiredanddrivepullupfilter
+        );
 
         gpio_out_impl!($pin_struct, PushPull, $shift, $outset, $outclr, $outtgl);
-        gpio_out_impl!($pin_struct, PushPullDrive, $shift, $outset, $outclr, $outtgl);
+        gpio_out_impl!(
+            $pin_struct,
+            PushPullDrive,
+            $shift,
+            $outset,
+            $outclr,
+            $outtgl
+        );
         gpio_out_impl!($pin_struct, WiredOr, $shift, $outset, $outclr, $outtgl);
-        gpio_out_impl!($pin_struct, WiredOrPullDown, $shift, $outset, $outclr, $outtgl);
+        gpio_out_impl!(
+            $pin_struct,
+            WiredOrPullDown,
+            $shift,
+            $outset,
+            $outclr,
+            $outtgl
+        );
         gpio_out_impl!($pin_struct, WiredAnd, $shift, $outset, $outclr, $outtgl);
-        gpio_out_impl!($pin_struct, WiredAndWithFilter, $shift, $outset, $outclr, $outtgl);
-        gpio_out_impl!($pin_struct, WiredAndPullUp, $shift, $outset, $outclr, $outtgl);
-        gpio_out_impl!($pin_struct, WiredAndPullUpWithFilter, $shift, $outset, $outclr, $outtgl);
-        gpio_out_impl!($pin_struct, WiredAndDrive, $shift, $outset, $outclr, $outtgl);
-        gpio_out_impl!($pin_struct, WiredAndDriveWithFilter, $shift, $outset, $outclr, $outtgl);
-        gpio_out_impl!($pin_struct, WiredAndDrivePullUp, $shift, $outset, $outclr, $outtgl);
-        gpio_out_impl!($pin_struct, WiredAndDrivePullUpWithFilter, $shift, $outset, $outclr, $outtgl);
+        gpio_out_impl!(
+            $pin_struct,
+            WiredAndWithFilter,
+            $shift,
+            $outset,
+            $outclr,
+            $outtgl
+        );
+        gpio_out_impl!(
+            $pin_struct,
+            WiredAndPullUp,
+            $shift,
+            $outset,
+            $outclr,
+            $outtgl
+        );
+        gpio_out_impl!(
+            $pin_struct,
+            WiredAndPullUpWithFilter,
+            $shift,
+            $outset,
+            $outclr,
+            $outtgl
+        );
+        gpio_out_impl!(
+            $pin_struct,
+            WiredAndDrive,
+            $shift,
+            $outset,
+            $outclr,
+            $outtgl
+        );
+        gpio_out_impl!(
+            $pin_struct,
+            WiredAndDriveWithFilter,
+            $shift,
+            $outset,
+            $outclr,
+            $outtgl
+        );
+        gpio_out_impl!(
+            $pin_struct,
+            WiredAndDrivePullUp,
+            $shift,
+            $outset,
+            $outclr,
+            $outtgl
+        );
+        gpio_out_impl!(
+            $pin_struct,
+            WiredAndDrivePullUpWithFilter,
+            $shift,
+            $outset,
+            $outclr,
+            $outtgl
+        );
     };
 }
 
@@ -295,19 +441,199 @@ pub mod pin {
     use core::marker::PhantomData;
     use embedded_hal::digital::{InputPin, OutputPin, ToggleableOutputPin};
 
-    gpio!(A0, mode0, 0, pa_ctrl, pa_model, pa_dout, pa_doutset, pa_doutclr, pa_douttgl, pa_din, pa_pinlockn);
-    gpio!(B7, mode7, 7, pb_ctrl, pb_model, pb_dout, pb_doutset, pb_doutclr, pb_douttgl, pb_din, pb_pinlockn);
-    gpio!(B8, mode8, 0, pb_ctrl, pb_modeh, pb_dout, pb_doutset, pb_doutclr, pb_douttgl, pb_din, pb_pinlockn);
-    gpio!(B11, mode11, 3, pb_ctrl, pb_modeh, pb_dout, pb_doutset, pb_doutclr, pb_douttgl, pb_din, pb_pinlockn);
-    gpio!(B13, mode13, 5, pb_ctrl, pb_modeh, pb_dout, pb_doutset, pb_doutclr, pb_douttgl, pb_din, pb_pinlockn);
-    gpio!(B14, mode14, 6, pb_ctrl, pb_modeh, pb_dout, pb_doutset, pb_doutclr, pb_douttgl, pb_din, pb_pinlockn);
-    gpio!(C0, mode0, 0, pc_ctrl, pc_model, pc_dout, pc_doutset, pc_doutclr, pc_douttgl, pc_din, pc_pinlockn);
-    gpio!(C1, mode1, 1, pc_ctrl, pc_model, pc_dout, pc_doutset, pc_doutclr, pc_douttgl, pc_din, pc_pinlockn);
-    gpio!(C14, mode14, 6, pc_ctrl, pc_modeh, pc_dout, pc_doutset, pc_doutclr, pc_douttgl, pc_din, pc_pinlockn);
-    gpio!(C15, mode15, 7, pc_ctrl, pc_modeh, pc_dout, pc_doutset, pc_doutclr, pc_douttgl, pc_din, pc_pinlockn);
-    gpio!(E12, mode12, 4, pe_ctrl, pe_modeh, pe_dout, pe_doutset, pe_doutclr, pe_douttgl, pe_din, pe_pinlockn);
-    gpio!(E13, mode13, 5, pe_ctrl, pe_modeh, pe_dout, pe_doutset, pe_doutclr, pe_douttgl, pe_din, pe_pinlockn);
-    gpio!(F0, mode0, 0, pf_ctrl, pf_model, pf_dout, pf_doutset, pf_doutclr, pf_douttgl, pf_din, pf_pinlockn);
-    gpio!(F1, mode1, 1, pf_ctrl, pf_model, pf_dout, pf_doutset, pf_doutclr, pf_douttgl, pf_din, pf_pinlockn);
-    gpio!(F2, mode2, 2, pf_ctrl, pf_model, pf_dout, pf_doutset, pf_doutclr, pf_douttgl, pf_din, pf_pinlockn);
+    gpio!(
+        A0,
+        mode0,
+        0,
+        pa_ctrl,
+        pa_model,
+        pa_dout,
+        pa_doutset,
+        pa_doutclr,
+        pa_douttgl,
+        pa_din,
+        pa_pinlockn
+    );
+    gpio!(
+        B7,
+        mode7,
+        7,
+        pb_ctrl,
+        pb_model,
+        pb_dout,
+        pb_doutset,
+        pb_doutclr,
+        pb_douttgl,
+        pb_din,
+        pb_pinlockn
+    );
+    gpio!(
+        B8,
+        mode8,
+        0,
+        pb_ctrl,
+        pb_modeh,
+        pb_dout,
+        pb_doutset,
+        pb_doutclr,
+        pb_douttgl,
+        pb_din,
+        pb_pinlockn
+    );
+    gpio!(
+        B11,
+        mode11,
+        3,
+        pb_ctrl,
+        pb_modeh,
+        pb_dout,
+        pb_doutset,
+        pb_doutclr,
+        pb_douttgl,
+        pb_din,
+        pb_pinlockn
+    );
+    gpio!(
+        B13,
+        mode13,
+        5,
+        pb_ctrl,
+        pb_modeh,
+        pb_dout,
+        pb_doutset,
+        pb_doutclr,
+        pb_douttgl,
+        pb_din,
+        pb_pinlockn
+    );
+    gpio!(
+        B14,
+        mode14,
+        6,
+        pb_ctrl,
+        pb_modeh,
+        pb_dout,
+        pb_doutset,
+        pb_doutclr,
+        pb_douttgl,
+        pb_din,
+        pb_pinlockn
+    );
+    gpio!(
+        C0,
+        mode0,
+        0,
+        pc_ctrl,
+        pc_model,
+        pc_dout,
+        pc_doutset,
+        pc_doutclr,
+        pc_douttgl,
+        pc_din,
+        pc_pinlockn
+    );
+    gpio!(
+        C1,
+        mode1,
+        1,
+        pc_ctrl,
+        pc_model,
+        pc_dout,
+        pc_doutset,
+        pc_doutclr,
+        pc_douttgl,
+        pc_din,
+        pc_pinlockn
+    );
+    gpio!(
+        C14,
+        mode14,
+        6,
+        pc_ctrl,
+        pc_modeh,
+        pc_dout,
+        pc_doutset,
+        pc_doutclr,
+        pc_douttgl,
+        pc_din,
+        pc_pinlockn
+    );
+    gpio!(
+        C15,
+        mode15,
+        7,
+        pc_ctrl,
+        pc_modeh,
+        pc_dout,
+        pc_doutset,
+        pc_doutclr,
+        pc_douttgl,
+        pc_din,
+        pc_pinlockn
+    );
+    gpio!(
+        E12,
+        mode12,
+        4,
+        pe_ctrl,
+        pe_modeh,
+        pe_dout,
+        pe_doutset,
+        pe_doutclr,
+        pe_douttgl,
+        pe_din,
+        pe_pinlockn
+    );
+    gpio!(
+        E13,
+        mode13,
+        5,
+        pe_ctrl,
+        pe_modeh,
+        pe_dout,
+        pe_doutset,
+        pe_doutclr,
+        pe_douttgl,
+        pe_din,
+        pe_pinlockn
+    );
+    gpio!(
+        F0,
+        mode0,
+        0,
+        pf_ctrl,
+        pf_model,
+        pf_dout,
+        pf_doutset,
+        pf_doutclr,
+        pf_douttgl,
+        pf_din,
+        pf_pinlockn
+    );
+    gpio!(
+        F1,
+        mode1,
+        1,
+        pf_ctrl,
+        pf_model,
+        pf_dout,
+        pf_doutset,
+        pf_doutclr,
+        pf_douttgl,
+        pf_din,
+        pf_pinlockn
+    );
+    gpio!(
+        F2,
+        mode2,
+        2,
+        pf_ctrl,
+        pf_model,
+        pf_dout,
+        pf_doutset,
+        pf_doutclr,
+        pf_douttgl,
+        pf_din,
+        pf_pinlockn
+    );
 }

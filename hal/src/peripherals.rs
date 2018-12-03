@@ -1,7 +1,7 @@
-use gpio;
-use led;
 use capacitive;
 use efm32;
+use gpio;
+use led;
 
 /// Watchdog peripheral for tomu board.
 pub struct Watchdog;

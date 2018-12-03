@@ -1,5 +1,8 @@
 use embedded_hal::digital::OutputPin;
-use gpio::{pin::{A0, B7}, GPIO, OpenDrain};
+use gpio::{
+    pin::{A0, B7},
+    OpenDrain, GPIO,
+};
 
 /// LED struct stores all leds available
 /// in tomu board.
@@ -11,7 +14,6 @@ pub struct LED {
 }
 
 impl LED {
-
     /// Create new LED instance, this is supposed
     /// to create singleton, but it's not as of currently.
     /// As we don't have singleton support in GPIO package
@@ -26,11 +28,11 @@ impl LED {
     /// Mutably borrow green led.
     /// As per https://github.com/rust-lang/rfcs/issues/1215
     /// partial borrow for struct field via method call
-    /// is not supported yet as the borrowed field were 
+    /// is not supported yet as the borrowed field were
     /// expected to live as long as the borrowed struct.
     /// So in this case, with binding, green led cannot
     /// be used with red led in the same scope.
-    /// 
+    ///
     /// ```no_run
     /// // this is ok
     /// p.led.green().on();
@@ -62,7 +64,6 @@ impl LED {
 
 /// Common trait for leds
 pub trait LedTrait {
-
     /// turn on led.
     fn on(&mut self);
 

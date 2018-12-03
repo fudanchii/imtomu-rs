@@ -6,9 +6,9 @@ description = "SVD2Rust generated board support package for EFM32 Happy Gecko, s
 license = "MIT"
 
 [dependencies]
-bare-metal = "0.2.3"
-cortex-m = "0.5.7"
-vcell = "*"
+bare-metal = "0.2.4"
+cortex-m = "0.5.8"
+vcell = "0.1.0"
 cortex-m-rt = { optional = true, version = "0.6.5" }
 
 [features]

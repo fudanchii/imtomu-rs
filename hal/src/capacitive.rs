@@ -1,5 +1,8 @@
-use embedded_hal::digital::{OutputPin, InputPin};
-use gpio::{pin::{C0, C1, E12, E13}, GPIO, InputPullDown, OpenDrain};
+use embedded_hal::digital::{InputPin, OutputPin};
+use gpio::{
+    pin::{C0, C1, E12, E13},
+    InputPullDown, OpenDrain, GPIO,
+};
 
 pub struct Button<Sink, Source> {
     sink: Sink,
@@ -43,7 +46,7 @@ impl Capacitive {
             c1: Button {
                 sink: gpio.split::<C1<InputPullDown>>(),
                 source: gpio.split::<E13<OpenDrain>>(),
-            }
+            },
         }
     }
 

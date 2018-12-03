@@ -10,8 +10,9 @@ use quote::quote;
 use syn::parse;
 use syn::{
     parse::{Parse, ParseStream, Result},
-    parse_macro_input, Expr, ExprArray, Ident, LitBool, LitInt, Token,
+    parse_macro_input,
     spanned::Spanned,
+    Expr, ExprArray, Ident, LitBool, LitInt, Token,
 };
 
 const TOBOOT_LOCK_ENTRY_MAGIC: u32 = 0x18349420;
@@ -203,7 +204,9 @@ pub fn toboot_config(input: crate::proc_macro::TokenStream) -> crate::proc_macro
     let erase_mask_hi_val = parsed_config.erase_mask_hi_val();
 
     if lock_val == TOBOOT_LOCK_ENTRY_MAGIC {
-        parsed_config.lock_entry.span()
+        parsed_config
+            .lock_entry
+            .span()
             .unstable()
             .warning("*CAUTION* this will lock you from entering bootloader")
             .emit();

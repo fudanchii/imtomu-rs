@@ -2,16 +2,12 @@
 #![no_main]
 
 extern crate cortex_m_rt;
-extern crate panic_halt;
 extern crate embedded_hal;
+extern crate panic_halt;
 extern crate tomu_hal;
 
 use cortex_m_rt::entry;
-use tomu_hal::{
-    peripherals,
-    toboot_config,
-    led::LedTrait,
-};
+use tomu_hal::{led::LedTrait, peripherals, toboot_config};
 
 /// this works too:
 /// ```
