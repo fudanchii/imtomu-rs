@@ -2,5 +2,4 @@
 members = [
     "efm32hg309f64",
     "hal",
-    "sandbox",
 ]
