@@ -18,14 +18,16 @@ use cortex_m_rt::entry;
 use tomu_hal::{peripherals, led::LedTrait};
 
 toboot_config! {
-    config: [autorun_enable, irq_enable],
-    lock_entry: false,
+    config: [autorun_enable],
 }
 
 #[entry]
 fn main() -> ! {
     let mut p = peripherals::take();
 
+    p.watchdog.disable();
+
+    p.led.red().off();
     p.led.green().on();
 
     loop {}
