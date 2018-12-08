@@ -178,7 +178,6 @@ impl ParsedTobootConfig {
 /// ``` no_run
 /// #[used]
 /// #[no_mangle]
-/// #[link_section = ".toboot.config"]
 /// static CONFIG: tomu_hal::toboot::TobootConfig = tomu_hal::toboot::TobootConfig{
 ///     magic: tomu_hal::toboot::TOBOOT_V2_MAGIC,
 ///     reserved_gen: 0,
@@ -215,7 +214,6 @@ pub fn toboot_config(input: crate::proc_macro::TokenStream) -> crate::proc_macro
     let result = quote! {
         #[used]
         #[no_mangle]
-        #[link_section = ".toboot.config"]
         static CONFIG: tomu_hal::toboot::TobootConfig = tomu_hal::toboot::TobootConfig{
             magic: tomu_hal::toboot::TOBOOT_V2_MAGIC,
             reserved_gen: 0,

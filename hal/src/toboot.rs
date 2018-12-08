@@ -44,8 +44,7 @@ pub struct TobootConfig {
 #[cfg(not(feature = "custom-toboot-config"))]
 #[used]
 #[no_mangle]
-#[link_section = ".toboot.config"]
-static CONFIG: TobootConfig = TobootConfig {
+pub static CONFIG: TobootConfig = TobootConfig {
     magic: TOBOOT_V2_MAGIC,
     reserved_gen: 0,
     start: 16,

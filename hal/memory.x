@@ -11,11 +11,13 @@ __ram_start__ = ORIGIN(RAM);
 __ram_size__  = LENGTH(RAM);
 __ram_end__   = __ram_start__ + __ram_size__;
 
+EXTERN(CONFIG);
+
 SECTIONS
 {
     .toboot :
     {
-        KEEP(*(.toboot.config));
+        KEEP(*(.rodata.CONFIG));
     } > FLASH
 
 } INSERT AFTER .vector_table;

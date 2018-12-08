@@ -7,15 +7,7 @@ extern crate panic_halt;
 extern crate tomu_hal;
 
 use cortex_m_rt::entry;
-use tomu_hal::{led::LedTrait, peripherals, toboot_config};
-
-/// this works too:
-/// ```
-/// toboot_config! { }
-/// ```
-toboot_config! {
-    config: [autorun_enable],
-}
+use tomu_hal::{led::LedTrait, peripherals};
 
 #[entry]
 fn main() -> ! {
