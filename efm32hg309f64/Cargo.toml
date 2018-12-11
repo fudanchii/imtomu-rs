@@ -13,3 +13,6 @@ cortex-m-rt = { optional = true, version = "0.6.5" }
 
 [features]
 rt = ["cortex-m-rt/device"]
+
+[workspace]
+members = ["tools"]

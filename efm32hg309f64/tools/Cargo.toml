@@ -1,0 +1,13 @@
+
+[package]
+name = "tools"
+version = "0.1.0"
+authors = []
+# We never publish our tasks
+publish = false
+edition = "2018"
+
+[dependencies]
+svd2rust = { git = "https://github.com/tones111/svd2rust", branch="lib_generate" }
+rustfmt-nightly = { git = "https://github.com/rust-lang/rustfmt", tag="1.0.0" }
+form = { git = "https://github.com/jacobrosenthal/form", branch="lib" }
