@@ -24,7 +24,7 @@ To build embedded programs using this template you'll need:
 - `rust-std` components (pre-compiled `core` crate) for the ARM Cortex-M
   targets. Run:
 ``` console
-$ rustup target add thumbv7m-none-eabi
+$ rustup target add thumbv6m-none-eabi
 ```
 
 - llvm-tools-preview for `llvm-objcopy` to turn the elf into a binary for uploading. Run:
@@ -39,7 +39,6 @@ usage
 ---
 
 ```
-cd hal
 cargo run --example touch_button --release
 
 ```
