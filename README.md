@@ -13,6 +13,35 @@ work in progress
 - [ ] USB
 - [ ] AES
 
+
+dependencies
+---
+
+To build embedded programs using this template you'll need:
+
+- Rust stable, ie 1.31 or a newer toolchain.
+
+- `rust-std` components (pre-compiled `core` crate) for the ARM Cortex-M
+  targets. Run:
+``` console
+$ rustup target add thumbv6m-none-eabi
+```
+
+- llvm-tools-preview for `llvm-objcopy` to turn the elf into a binary for uploading. Run:
+``` console
+$ rustup component add llvm-tools-preview
+```
+
+- The [dfu-util](https://tomu.im/update#installing-dfu-util)
+
+
+usage
+---
+
+```
+cargo run --example touch_button --release
+
+```
 toboot config
 ---
 

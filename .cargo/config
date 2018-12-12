@@ -1,5 +1,5 @@
 [target.thumbv6m-none-eabi]
-runner = 'arm-none-eabi-gdb'
+runner = ["./upload.sh"]
 rustflags = [
   "-C", "opt-level=z",
   "-C", "link-arg=-Tlink.x",
