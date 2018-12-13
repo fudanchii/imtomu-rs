@@ -1,5 +1,22 @@
-[workspace]
-members = [
-    "efm32hg309f64",
-    "hal",
-]
+[package]
+name = "tomu-hal"
+version = "0.1.0"
+authors = ["Nurahmadie <nurahmadie@gmail.com>"]
+
+[dependencies]
+efm32 = { git = "https://github.com/jacobrosenthal/efm32-rs" }
+tomu-hal-macros = { path = "macros", optional = true }
+embedded-hal = { version = "0.2.1", features = ["unproven"] }
+
+# We don't have direct dependencies to this,
+# but will need this to build examples
+[dev-dependencies]
+cortex-m-rt = "*"
+panic-halt = "*"
+tomu-hal-macros = { path = "macros" }
+
+[target.'cfg(not(target_os = "none"))'.dev-dependencies]
+compiletest_rs = "0.3.17"
+
+[features]
+toboot-custom-config = ["tomu-hal-macros"]
