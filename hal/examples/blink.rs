@@ -2,7 +2,6 @@
 #![no_main]
 
 extern crate cortex_m_rt;
-extern crate embedded_hal;
 extern crate panic_halt;
 extern crate tomu_hal;
 
