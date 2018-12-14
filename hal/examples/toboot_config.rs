@@ -15,7 +15,7 @@ use tomu_hal_macros::toboot_config;
 
 use cortex_m_rt::entry;
 
-use tomu_hal::{peripherals, led::LedTrait};
+use tomu_hal::{led::LedTrait, peripherals};
 
 toboot_config! {
     config: [autorun_enable],
