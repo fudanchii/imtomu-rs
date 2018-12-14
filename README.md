@@ -73,3 +73,7 @@ Toboot api ref: [here](https://github.com/im-tomu/tomu-bootloader/blob/master/AP
 examples
 ---
 There are some examples on how to use tomu-hal in examples folder.
+
+license
+---
+Licensed under 2-clause BSD.
