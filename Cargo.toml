@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Nurahmadie <nurahmadie@gmail.com>"]
 
 [dependencies]
-efm32 = { git = "https://github.com/jacobrosenthal/efm32-rs" }
+efm32hg309f64-pac = { git = "https://github.com/jacobrosenthal/efm32hg309f64-pac" }
 tomu-hal-macros = { path = "macros", optional = true }
 embedded-hal = { version = "0.2.1", features = ["unproven"] }
 
