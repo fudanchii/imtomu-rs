@@ -1,4 +1,4 @@
-imtomu-rs
+imtomu-rs [![Build Status](https://travis-ci.com/fudanchii/imtomu-rs.svg?branch=master)](https://travis-ci.com/fudanchii/imtomu-rs)
 ---
 
 HAL crate targeted for [Tim's Open Micro USB](http://tomu.im/)
