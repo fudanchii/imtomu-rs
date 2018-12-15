@@ -1,6 +1,6 @@
 #![no_std]
 
-extern crate efm32;
+extern crate efm32hg309f64_pac as efm32;
 extern crate embedded_hal;
 
 #[cfg(feature = "toboot-custom-config")]
