@@ -1,7 +1,7 @@
 imtomu-rs
 ---
 
-driver and hal crates targeted for [Tim's Open Micro USB](http://tomu.im/)
+HAL crate targeted for [Tim's Open Micro USB](http://tomu.im/)
 
 Includes support for tomu-bootloader config (toboot v2).
 
