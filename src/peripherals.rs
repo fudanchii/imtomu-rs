@@ -2,6 +2,7 @@ use capacitive;
 use efm32;
 use gpio;
 use led;
+use rtc;
 
 /// Watchdog peripheral for tomu board.
 pub struct Watchdog;
@@ -39,6 +40,7 @@ pub struct Peripherals {
     pub watchdog: Watchdog,
     pub led: led::LED,
     pub touch: capacitive::Capacitive,
+    pub rtc: rtc::RTC,
 }
 
 /// Take `Peripherals`  instance, this is called `take`
@@ -57,5 +59,6 @@ pub fn take() -> Peripherals {
         led: led,
         watchdog: Watchdog,
         touch: cap,
+        rtc: rtc::RTC::new(),
     }
 }
