@@ -1,19 +1,16 @@
 use cortex_m::asm;
 use embedded_hal::timer;
 
-use core::marker::PhantomData;
-
 use efm32;
 use nb;
 
 use void::Void;
 
-pub struct RTC {
-    _marked: PhantomData<()>,
-}
+pub struct RTC;
 
 pub mod rtc {
     use efm32;
+    use time::{Seconds, Ticks};
 
     pub use efm32::cmu::lfapresc0::RTCW as Prescaler;
 
@@ -46,28 +43,31 @@ pub mod rtc {
         }
     }
 
-    pub struct Seconds(u32);
+    pub struct TimeUnit(u32);
 
-    impl Seconds {
-        pub fn to_counter(self) -> u32 {
+    impl From<Seconds<u32>> for TimeUnit {
+        fn from(c: Seconds<u32>) -> Self {
             let presc = unsafe { 1 << (*efm32::CMU::ptr()).lfapresc0.read().bits() };
-            (32768 / presc) * self.0
+            TimeUnit((32768 / presc) * c.0)
         }
     }
 
-    impl From<u32> for Seconds {
-        fn from(c: u32) -> Self {
-            Seconds(c)
+    impl From<Ticks<u32>> for TimeUnit {
+        fn from(c: Ticks<u32>) -> Self {
+            TimeUnit(c.0)
         }
     }
 
+    impl From<TimeUnit> for u32 {
+        fn from(c: TimeUnit) -> Self {
+            c.0
+        }
+    }
 }
 
 impl RTC {
     pub fn new() -> Self {
-        RTC {
-            _marked: PhantomData,
-        }
+        RTC
     }
 
     pub fn setup<CT: rtc::CtrlTrait>(&mut self, presc: rtc::Prescaler, ctrl: CT) {
@@ -136,15 +136,15 @@ impl RTC {
 }
 
 impl timer::CountDown for RTC {
-    type Time = rtc::Seconds;
+    type Time = rtc::TimeUnit;
 
     fn start<T>(&mut self, count: T)
     where
-        T: Into<Self::Time>,
+        T: Into<rtc::TimeUnit>,
     {
-        let ms_time: Self::Time = count.into();
+        let t: rtc::TimeUnit = count.into();
         self.disable();
-        self.set_comp0(ms_time.to_counter());
+        self.set_comp0(t.into());
         self.enable();
     }
 

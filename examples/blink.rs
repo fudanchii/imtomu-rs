@@ -24,7 +24,8 @@ fn main() -> ! {
         } else if counter == 200000 {
             p.led.green().off();
             p.led.red().off();
-        } if counter == 100000 {
+        }
+        if counter == 100000 {
             p.led.green().off();
             p.led.red().on();
         }

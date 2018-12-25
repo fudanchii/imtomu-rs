@@ -11,7 +11,7 @@ extern crate tomu_hal;
 use cortex_m_rt::entry;
 use embedded_hal::timer::CountDown;
 use nb::block;
-use tomu_hal::{led::LedTrait, peripherals};
+use tomu_hal::{led::LedTrait, peripherals, time::Unit};
 
 #[entry]
 fn main() -> ! {
@@ -21,7 +21,7 @@ fn main() -> ! {
 
     p.rtc.default_setup();
 
-    p.rtc.start(3);
+    p.rtc.start(1u32.s());
 
     p.led.green().off();
     p.led.red().off();

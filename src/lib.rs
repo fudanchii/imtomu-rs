@@ -18,6 +18,7 @@ pub mod capacitive;
 pub mod gpio;
 pub mod led;
 pub mod rtc;
+pub mod time;
 pub mod uart;
 pub mod usb;
 
