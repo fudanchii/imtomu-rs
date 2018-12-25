@@ -6,62 +6,59 @@ use nb;
 
 use void::Void;
 
+use time::{Seconds, Ticks};
+
+pub use efm32::cmu::lfapresc0::RTCW as Prescaler;
+
 pub struct RTC;
 
-pub mod rtc {
-    use efm32;
-    use time::{Seconds, Ticks};
+#[derive(Clone, Copy)]
+#[repr(u32)]
+pub enum Ctrl {
+    DebugRun = 2,
+    Comp0Top = 4,
+}
 
-    pub use efm32::cmu::lfapresc0::RTCW as Prescaler;
+pub trait CtrlTrait {
+    fn bits(self) -> u32;
+}
 
-    #[derive(Clone, Copy)]
-    #[repr(u32)]
-    pub enum Ctrl {
-        DebugRun = 2,
-        Comp0Top = 4,
+impl CtrlTrait for [Ctrl; 0] {
+    fn bits(self) -> u32 {
+        0
     }
+}
 
-    pub trait CtrlTrait {
-        fn bits(self) -> u32;
+impl CtrlTrait for [Ctrl; 1] {
+    fn bits(self) -> u32 {
+        self[0] as u32
     }
+}
 
-    impl CtrlTrait for [Ctrl; 0] {
-        fn bits(self) -> u32 {
-            0
-        }
+impl CtrlTrait for [Ctrl; 2] {
+    fn bits(self) -> u32 {
+        self[0] as u32 | self[1] as u32
     }
+}
 
-    impl CtrlTrait for [Ctrl; 1] {
-        fn bits(self) -> u32 {
-            self[0] as u32
-        }
+pub struct TimeUnit(u32);
+
+impl From<Seconds<u32>> for TimeUnit {
+    fn from(c: Seconds<u32>) -> Self {
+        let presc = unsafe { 1 << (*efm32::CMU::ptr()).lfapresc0.read().bits() };
+        TimeUnit((32768 / presc) * c.0)
     }
+}
 
-    impl CtrlTrait for [Ctrl; 2] {
-        fn bits(self) -> u32 {
-            self[0] as u32 | self[1] as u32
-        }
+impl From<Ticks<u32>> for TimeUnit {
+    fn from(c: Ticks<u32>) -> Self {
+        TimeUnit(c.0)
     }
+}
 
-    pub struct TimeUnit(u32);
-
-    impl From<Seconds<u32>> for TimeUnit {
-        fn from(c: Seconds<u32>) -> Self {
-            let presc = unsafe { 1 << (*efm32::CMU::ptr()).lfapresc0.read().bits() };
-            TimeUnit((32768 / presc) * c.0)
-        }
-    }
-
-    impl From<Ticks<u32>> for TimeUnit {
-        fn from(c: Ticks<u32>) -> Self {
-            TimeUnit(c.0)
-        }
-    }
-
-    impl From<TimeUnit> for u32 {
-        fn from(c: TimeUnit) -> Self {
-            c.0
-        }
+impl From<TimeUnit> for u32 {
+    fn from(c: TimeUnit) -> Self {
+        c.0
     }
 }
 
@@ -70,7 +67,7 @@ impl RTC {
         RTC
     }
 
-    pub fn setup<CT: rtc::CtrlTrait>(&mut self, presc: rtc::Prescaler, ctrl: CT) {
+    pub fn setup<CT: CtrlTrait>(&mut self, presc: Prescaler, ctrl: CT) {
         unsafe {
             (*efm32::CMU::ptr())
                 .oscencmd
@@ -95,7 +92,7 @@ impl RTC {
     }
 
     pub fn default_setup(&mut self) {
-        self.setup(rtc::Prescaler::DIV1, [rtc::Ctrl::Comp0Top]);
+        self.setup(Prescaler::DIV1, [Ctrl::Comp0Top]);
     }
 
     pub fn enable(&mut self) {
@@ -136,13 +133,13 @@ impl RTC {
 }
 
 impl timer::CountDown for RTC {
-    type Time = rtc::TimeUnit;
+    type Time = TimeUnit;
 
     fn start<T>(&mut self, count: T)
     where
-        T: Into<rtc::TimeUnit>,
+        T: Into<TimeUnit>,
     {
-        let t: rtc::TimeUnit = count.into();
+        let t: TimeUnit = count.into();
         self.disable();
         self.set_comp0(t.into());
         self.enable();
