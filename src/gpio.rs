@@ -25,7 +25,7 @@
 //!
 //! ```
 
-use efm32;
+use crate::efm32;
 
 /// Disable Input/Output no pullup.
 pub struct Disabled;

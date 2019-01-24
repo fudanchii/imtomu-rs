@@ -1,15 +1,11 @@
 #![feature(proc_macro_diagnostic)]
 
 extern crate proc_macro;
-extern crate proc_macro2;
-extern crate quote;
-extern crate syn;
 
 use proc_macro2::Span;
 use quote::quote;
-use syn::parse;
 use syn::{
-    parse::{Parse, ParseStream, Result},
+    parse::{self, Parse, ParseStream, Result},
     parse_macro_input,
     spanned::Spanned,
     Expr, ExprArray, Ident, LitBool, LitInt, Token,

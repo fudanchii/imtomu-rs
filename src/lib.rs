@@ -1,10 +1,9 @@
 #![no_std]
 
-extern crate efm32hg309f64_pac as efm32;
-extern crate embedded_hal;
+pub use efm32;
 
-#[cfg(feature = "toboot-custom-config")]
-extern crate tomu_hal_macros;
+#[cfg(feature = "rt")]
+pub use crate::efm32::interrupt;
 
 pub mod toboot;
 

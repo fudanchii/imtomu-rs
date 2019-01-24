@@ -1,7 +1,7 @@
-use capacitive;
-use efm32;
-use gpio;
-use led;
+use crate::capacitive;
+use crate::efm32;
+use crate::gpio;
+use crate::led;
 
 /// Watchdog peripheral for tomu board.
 pub struct Watchdog;
