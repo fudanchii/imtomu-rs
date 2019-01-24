@@ -5,9 +5,11 @@ authors = ["Nurahmadie <nurahmadie@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+cortex-m = "0.5.8"
 efm32 = { git = "https://github.com/jacobrosenthal/efm32hg309f64-pac", features = ["rt"], package="efm32hg309f64-pac" }
 tomu-hal-macros = { path = "macros", optional = true }
 embedded-hal = { version = "0.2.2", features = ["unproven"] }
+cast = {version = "0.2.2",default-features=false }
 
 # We don't have direct dependencies to this,
 # but will need this to build examples
