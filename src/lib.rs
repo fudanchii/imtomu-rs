@@ -15,5 +15,12 @@ pub mod gpio;
 pub mod uart;
 pub mod usb;
 
+pub mod prelude {
+    pub use embedded_hal::prelude::*;
+
+    pub use crate::gpio::GpioExt;
+    // pub use crate::led::LedTrait;
+}
+
 #[cfg(feature = "toboot-custom-config")]
 pub use tomu_hal_macros::toboot_config;
