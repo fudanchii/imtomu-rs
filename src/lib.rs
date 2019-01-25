@@ -7,11 +7,11 @@ pub use crate::efm32::interrupt;
 
 pub mod toboot;
 
-pub mod peripherals;
+// pub mod peripherals;
 
-pub mod capacitive;
+// pub mod capacitive;
 pub mod gpio;
-pub mod led;
+// pub mod led;
 pub mod uart;
 pub mod usb;
 
