@@ -6,9 +6,6 @@ rust:
   - nightly
 
 matrix:
-  allow_failures:
-    - rust: stable
-    - rust: beta
   fast_finish: true
 
 cache: cargo
