@@ -2,9 +2,10 @@
 name = "tomu-hal"
 version = "0.1.0"
 authors = ["Nurahmadie <nurahmadie@gmail.com>"]
+edition = "2018"
 
 [dependencies]
-efm32hg309f64-pac = { git = "https://github.com/jacobrosenthal/efm32hg309f64-pac", features = ["rt"] }
+efm32 = { git = "https://github.com/jacobrosenthal/efm32hg309f64-pac", features = ["rt"], package="efm32hg309f64-pac" }
 tomu-hal-macros = { path = "macros", optional = true }
 embedded-hal = { version = "0.2.1", features = ["unproven"] }
 

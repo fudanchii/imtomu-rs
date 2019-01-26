@@ -1,8 +1,8 @@
-use embedded_hal::digital::{InputPin, OutputPin};
-use gpio::{
+use crate::gpio::{
     pin::{C0, C1, E12, E13},
     InputPullDown, OpenDrain, GPIO,
 };
+use embedded_hal::digital::{InputPin, OutputPin};
 
 pub struct Button<Sink, Source> {
     sink: Sink,

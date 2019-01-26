@@ -1,8 +1,8 @@
-use embedded_hal::digital::OutputPin;
-use gpio::{
+use crate::gpio::{
     pin::{A0, B7},
     OpenDrain, GPIO,
 };
+use embedded_hal::digital::OutputPin;
 
 /// LED struct stores all leds available
 /// in tomu board.

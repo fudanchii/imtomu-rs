@@ -1,9 +1,7 @@
 #![no_std]
 #![no_main]
 
-extern crate cortex_m_rt;
 extern crate panic_halt;
-extern crate tomu_hal;
 
 use cortex_m_rt::entry;
 use tomu_hal::{led::LedTrait, peripherals};
@@ -24,7 +22,8 @@ fn main() -> ! {
         } else if counter == 200000 {
             p.led.green().off();
             p.led.red().off();
-        } if counter == 100000 {
+        }
+        if counter == 100000 {
             p.led.green().off();
             p.led.red().on();
         }
