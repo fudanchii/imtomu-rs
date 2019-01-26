@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 efm32 = { git = "https://github.com/jacobrosenthal/efm32hg309f64-pac", features = ["rt"], package="efm32hg309f64-pac" }
 tomu-hal-macros = { path = "macros", optional = true }
-embedded-hal = { version = "0.2.1", features = ["unproven"] }
+embedded-hal = { version = "0.2.2", features = ["unproven"] }
 
 # We don't have direct dependencies to this,
 # but will need this to build examples
