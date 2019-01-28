@@ -53,7 +53,7 @@ toboot_config! {
 }
 ```
 
-![warns](https://f4.fudan.ch/shx/putty_(3)_2018-12-02_04-08-41.png)
+![warns](https://f4.fudan.ch/shx/putty_(3)_2019-01-28_13-43-45.png)
 
 Full config as the following:
 ```rust
