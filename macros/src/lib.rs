@@ -1,5 +1,3 @@
-#![feature(proc_macro_diagnostic)]
-
 extern crate proc_macro;
 
 use proc_macro2::Span;
@@ -198,13 +196,17 @@ pub fn toboot_config(input: crate::proc_macro::TokenStream) -> crate::proc_macro
     let erase_mask_lo_val = parsed_config.erase_mask_lo_val();
     let erase_mask_hi_val = parsed_config.erase_mask_hi_val();
 
+    // FIXME: revert this back to using proc_macro's `warning` when it's stabilized
     if lock_val == TOBOOT_LOCK_ENTRY_MAGIC {
-        parsed_config
-            .lock_entry
-            .span()
-            .unstable()
-            .warning("*CAUTION* this will lock you from entering bootloader")
-            .emit();
+        eprintln!(r#"
+***************** CAUTION! *******************
+* Setting toboot lock entry to `true` will   *
+* _LOCK_ you out from entering bootloader.   *
+* Unless you know what you're doing, you may *
+* want to set `lock_entry` to `false` or     *
+* remove the setting altogether.             *
+**********************************************
+"#);
     }
 
     let result = quote! {
