@@ -5,7 +5,7 @@ extern crate panic_halt;
 
 use cortex_m_rt::entry;
 
-use tomu_hal::{prelude::*, tomu::Tomu};
+use tomu::{prelude::*, Tomu};
 
 #[entry]
 fn main() -> ! {

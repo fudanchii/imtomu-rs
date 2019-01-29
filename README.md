@@ -1,7 +1,7 @@
 imtomu-rs [![Build Status](https://travis-ci.com/fudanchii/imtomu-rs.svg?branch=master)](https://travis-ci.com/fudanchii/imtomu-rs)
 ---
 
-HAL crate targeted for [Tim's Open Micro USB](http://tomu.im/)
+Board support crate targeted for [Tim's Open Micro USB](http://tomu.im/)
 
 Includes support for tomu-bootloader config (toboot v2).
 
@@ -72,7 +72,7 @@ Toboot api ref: [here](https://github.com/im-tomu/tomu-bootloader/blob/master/AP
 
 examples
 ---
-There are some examples on how to use tomu-hal in examples folder.
+There are some examples on how to use tomu in examples folder.
 
 license
 ---
