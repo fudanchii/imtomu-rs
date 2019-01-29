@@ -40,6 +40,8 @@ pub struct Tomu {
     pub watchdog: watchdog::Watchdog,
     pub led: led::LED,
     pub touch: capacitive::Capacitive,
+    pub delay: delay::Delay,
+    pub clocks: clocks::Clocks,
 
     /// Core peripheral: Cache and branch predictor maintenance operations
     pub CBP: efm32::CBP,
@@ -71,9 +73,6 @@ pub struct Tomu {
     /// Core peripheral: System Control Block
     pub SCB: efm32::SCB,
 
-    /// Core peripheral: SysTick Timer
-    pub SYST: efm32::SYST,
-
     /// Core peripheral: Trace Port Interface Unit
     pub TPIU: efm32::TPIU,
 
@@ -85,9 +84,6 @@ pub struct Tomu {
 
     /// efm32 peripheral: AES
     pub AES: efm32::AES,
-
-    /// efm32 peripheral: CMU
-    pub CMU: efm32::CMU,
 
     /// efm32 peripheral: DMA
     pub DMA: efm32::DMA,
@@ -144,6 +140,8 @@ pub struct Tomu {
     pub VCMP: efm32::VCMP,
 }
 
+use crate::clocks::ClocksExt;
+
 impl Tomu {
     /// Take `Peripherals`  instance, this is called `take`
     /// since we also take efm32's own `Peripherals` which will
@@ -153,12 +151,17 @@ impl Tomu {
         let cp = efm32::CorePeripherals::take()?;
 
         let mut gpio = gpio::GPIO::new(&mut p.CMU);
+        let led = led::LED::new(&mut gpio);
+        let touch = capacitive::Capacitive::new(&mut gpio);
+        let clocks = p.CMU.constrain().freeze();
 
         Some(Self {
-            gpio: gpio::GPIO::new(&mut p.CMU),
-            led: led::LED::new(&mut gpio),
+            clocks,
+            gpio,
+            led,
             watchdog: watchdog::Watchdog::new(p.WDOG),
-            touch: capacitive::Capacitive::new(&mut gpio),
+            touch,
+            delay: delay::Delay::new(cp.SYST, clocks.clone()),
 
             // Core peripherals
             CBP: cp.CBP,
@@ -171,14 +174,12 @@ impl Tomu {
             MPU: cp.MPU,
             NVIC: cp.NVIC,
             SCB: cp.SCB,
-            SYST: cp.SYST,
             TPIU: cp.TPIU,
 
             // efm32 peripherals
             ACMP0: p.ACMP0,
             ADC0: p.ADC0,
             AES: p.AES,
-            CMU: p.CMU,
             DMA: p.DMA,
             EMU: p.EMU,
             I2C0: p.I2C0,

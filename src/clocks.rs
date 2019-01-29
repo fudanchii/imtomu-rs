@@ -18,6 +18,7 @@ pub struct LFCLK {
     _0: (),
 }
 
+#[derive(Clone, Copy)]
 pub struct Clocks {
     hfclk: Hertz,
     lfclk: Hertz,

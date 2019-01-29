@@ -5,21 +5,20 @@ extern crate panic_halt;
 
 use cortex_m_rt::entry;
 
-use tomu::{delay::Delay, prelude::*, Tomu};
+use tomu::{prelude::*, Tomu};
 
 #[entry]
 fn main() -> ! {
     let mut tomu = Tomu::take().unwrap();
+    let mut timer = tomu.delay;
+    let red = tomu.led.red();
 
     tomu.watchdog.disable();
 
-    let clocks = tomu.CMU.constrain().freeze();
-    let mut timer = Delay::new(tomu.SYST, clocks);
-
     loop {
-        tomu.led.red().off();
+        red.off();
         timer.delay_ms(1000_u32);
-        tomu.led.red().on();
+        red.on();
         timer.delay_ms(1000_u32);
     }
 }
