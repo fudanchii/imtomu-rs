@@ -1,5 +1,5 @@
 [package]
-name = "tomu-hal-macros"
+name = "tomu-macros"
 version = "0.1.0"
 authors = ["Nurahmadie <nurahmadie@gmail.com>"]
 edition = "2018"
@@ -16,4 +16,4 @@ features = ["extra-traits", "full"]
 version = "0.15.26"
 
 [dev-dependencies]
-tomu-hal = { path = ".." }
+tomu = { path = ".." }

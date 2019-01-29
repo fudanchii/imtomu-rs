@@ -4,14 +4,14 @@
 extern crate panic_halt;
 
 // For non-examples (i.e. an actual crate)
-// tomu_hal_macros don't need to be explicitly
-// imported, tomu_hal can be built with `toboot-custom-config` feature
+// tomu_macros don't need to be explicitly
+// imported, tomu can be built with `toboot-custom-config` feature
 // which will import and reexport toboot_config automatically
-use tomu_hal_macros::toboot_config;
+use tomu_macros::toboot_config;
 
 use cortex_m_rt::entry;
 
-use tomu_hal::{led::LedTrait, peripherals};
+use tomu::{prelude::*, Tomu};
 
 toboot_config! {
     config: [autorun_enable],
@@ -19,12 +19,12 @@ toboot_config! {
 
 #[entry]
 fn main() -> ! {
-    let mut p = peripherals::take();
+    let mut tomu = Tomu::take().unwrap();
 
-    p.watchdog.disable();
+    tomu.led.red().off();
+    tomu.led.green().on();
 
-    p.led.red().off();
-    p.led.green().on();
-
-    loop {}
+    loop {
+        tomu.watchdog.feed();
+    }
 }

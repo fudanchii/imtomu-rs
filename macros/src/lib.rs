@@ -160,7 +160,7 @@ impl ParsedTobootConfig {
 /// for example:
 /// ``` no_run
 /// # #![feature(proc_macro_hygiene)]
-/// # use tomu_hal_macros::toboot_config;
+/// # use tomu_macros::toboot_config;
 ///
 /// toboot_config! {
 ///     config: [irq_enable, autorun_enable],
@@ -172,12 +172,12 @@ impl ParsedTobootConfig {
 /// ``` no_run
 /// #[used]
 /// #[no_mangle]
-/// static CONFIG: tomu_hal::toboot::TobootConfig = tomu_hal::toboot::TobootConfig{
-///     magic: tomu_hal::toboot::TOBOOT_V2_MAGIC,
+/// static CONFIG: tomu::toboot::TobootConfig = tomu::toboot::TobootConfig{
+///     magic: tomu::toboot::TOBOOT_V2_MAGIC,
 ///     reserved_gen: 0,
 ///     start: 16,
 ///     config: 3,
-///     lock_entry: tomu_hal::toboot::TOBOOT_LOCK_ENTRY_MAGIC,
+///     lock_entry: tomu::toboot::TOBOOT_LOCK_ENTRY_MAGIC,
 ///     erase_mask_lo: 0,
 ///     erase_mask_hi: 0,
 ///     reserved_hash: 0,
@@ -198,7 +198,8 @@ pub fn toboot_config(input: crate::proc_macro::TokenStream) -> crate::proc_macro
 
     // FIXME: revert this back to using proc_macro's `warning` when it's stabilized
     if lock_val == TOBOOT_LOCK_ENTRY_MAGIC {
-        eprintln!(r#"
+        eprintln!(
+            r#"
 ***************** CAUTION! *******************
 * Setting toboot lock entry to `true` will   *
 * _LOCK_ you out from entering bootloader.   *
@@ -206,14 +207,15 @@ pub fn toboot_config(input: crate::proc_macro::TokenStream) -> crate::proc_macro
 * want to set `lock_entry` to `false` or     *
 * remove the setting altogether.             *
 **********************************************
-"#);
+"#
+        );
     }
 
     let result = quote! {
         #[used]
         #[no_mangle]
-        static CONFIG: tomu_hal::toboot::TobootConfig = tomu_hal::toboot::TobootConfig{
-            magic: tomu_hal::toboot::TOBOOT_V2_MAGIC,
+        static CONFIG: tomu::toboot::TobootConfig = tomu::toboot::TobootConfig{
+            magic: tomu::toboot::TOBOOT_V2_MAGIC,
             reserved_gen: 0,
             start: 16,
             config: #config_val,

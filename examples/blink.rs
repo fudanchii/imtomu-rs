@@ -4,36 +4,21 @@
 extern crate panic_halt;
 
 use cortex_m_rt::entry;
-use tomu_hal::{led::LedTrait, peripherals};
+
+use tomu::{prelude::*, Tomu};
 
 #[entry]
 fn main() -> ! {
-    let mut p = peripherals::take();
+    let mut tomu = Tomu::take().unwrap();
+    let mut timer = tomu.delay;
+    let red = tomu.led.red();
 
-    let mut counter = 0;
+    tomu.watchdog.disable();
 
     loop {
-        if counter == 400000 {
-            p.led.green().off();
-            p.led.red().off();
-        } else if counter == 300000 {
-            p.led.green().on();
-            p.led.red().off();
-        } else if counter == 200000 {
-            p.led.green().off();
-            p.led.red().off();
-        }
-        if counter == 100000 {
-            p.led.green().off();
-            p.led.red().on();
-        }
-
-        if counter > 0 {
-            counter = counter - 1;
-        } else {
-            counter = 400000;
-        }
-
-        p.watchdog.pet();
+        red.off();
+        timer.delay_ms(1000_u32);
+        red.on();
+        timer.delay_ms(1000_u32);
     }
 }
