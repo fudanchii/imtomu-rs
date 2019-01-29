@@ -11,7 +11,7 @@ use tomu_hal_macros::toboot_config;
 
 use cortex_m_rt::entry;
 
-use tomu_hal::{led::LedTrait, peripherals};
+use tomu_hal::{prelude::*, tomu::Tomu};
 
 toboot_config! {
     config: [autorun_enable],
@@ -19,12 +19,12 @@ toboot_config! {
 
 #[entry]
 fn main() -> ! {
-    let mut p = peripherals::take();
+    let mut tomu = Tomu::take().unwrap();
 
-    p.watchdog.disable();
+    tomu.led.red().off();
+    tomu.led.green().on();
 
-    p.led.red().off();
-    p.led.green().on();
-
-    loop {}
+    loop {
+        tomu.watchdog.feed();
+    }
 }

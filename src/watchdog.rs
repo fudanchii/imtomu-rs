@@ -6,9 +6,14 @@ pub struct Watchdog {
     wdog: WDOG,
 }
 
+#[allow(dead_code)]
 impl Watchdog {
     pub fn new(wdog: WDOG) -> Self {
         Self { wdog }
+    }
+
+    fn free(self) -> efm32::WDOG {
+        self.wdog
     }
 }
 
