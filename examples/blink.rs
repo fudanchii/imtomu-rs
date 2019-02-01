@@ -11,14 +11,12 @@ use tomu::{prelude::*, Tomu};
 fn main() -> ! {
     let mut tomu = Tomu::take().unwrap();
     let mut timer = tomu.delay;
-    let red = tomu.led.red();
+    let mut red = tomu.leds.red;
 
     tomu.watchdog.disable();
 
     loop {
         red.off();
-        timer.delay_ms(1000_u32);
-        red.on();
-        timer.delay_ms(1000_u32);
+        timer.delay_ms(100_u32);
     }
 }

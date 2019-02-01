@@ -3,22 +3,22 @@
 use cast::u32;
 use cortex_m::peripheral::syst::SystClkSource;
 use cortex_m::peripheral::SYST;
+use efm32_hal::cmu::{FrozenClock, HFCoreClk};
 
-use crate::clocks::Clocks;
 use crate::embedded_hal::blocking::delay::{DelayMs, DelayUs};
 
 /// System timer (SysTick) as a delay provider
 pub struct Delay {
-    clocks: Clocks,
+    clock: HFCoreClk,
     syst: SYST,
 }
 
 impl Delay {
     /// Configures the system timer (SysTick) as a delay provider
-    pub fn new(mut syst: SYST, clocks: Clocks) -> Self {
+    pub fn new(mut syst: SYST, clock: HFCoreClk) -> Self {
         syst.set_clock_source(SystClkSource::Core);
 
-        Delay { syst, clocks }
+        Delay { syst, clock }
     }
 
     /// Releases the system timer (SysTick) resource
@@ -50,7 +50,7 @@ impl DelayUs<u32> for Delay {
         // The SysTick Reload Value register supports values between 1 and 0x00FFFFFF.
         const MAX_RVR: u32 = 0x00FF_FFFF;
 
-        let mut total_rvr = us * (self.clocks.hfclk().0 / 1_000_000);
+        let mut total_rvr = us * (self.clock.get_frequency().0 / 1_000_000);
 
         while total_rvr != 0 {
             let current_rvr = if total_rvr <= MAX_RVR {
@@ -86,11 +86,11 @@ impl DelayUs<u8> for Delay {
 }
 
 pub trait DelayExt {
-    fn delay(self, clocks: Clocks) -> Delay;
+    fn delay(self, clock: HFCoreClk) -> Delay;
 }
 
 impl DelayExt for SYST {
-    fn delay(self, clocks: Clocks) -> Delay {
-        Delay::new(self, clocks)
+    fn delay(self, clock: HFCoreClk) -> Delay {
+        Delay::new(self, clock)
     }
 }

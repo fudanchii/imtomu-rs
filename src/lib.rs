@@ -9,10 +9,7 @@ pub use crate::efm32::interrupt;
 
 pub mod toboot;
 
-pub mod capacitive;
-pub mod clocks;
 pub mod delay;
-pub mod gpio;
 pub mod led;
 pub mod time;
 pub mod uart;
@@ -23,9 +20,7 @@ pub mod watchdog;
 pub use tomu_macros::toboot_config;
 
 pub mod prelude {
-    pub use crate::clocks::ClocksExt;
     pub use crate::delay::DelayExt;
-    pub use crate::led::LedTrait;
     pub use crate::time::U32Ext;
     pub use embedded_hal::prelude::*;
     pub use embedded_hal::watchdog::Watchdog;
@@ -36,12 +31,9 @@ pub mod prelude {
 #[allow(non_snake_case)]
 pub struct Tomu {
     #[allow(dead_code)]
-    pub gpio: gpio::GPIO,
     pub watchdog: watchdog::Watchdog,
-    pub led: led::LED,
-    pub touch: capacitive::Capacitive,
+    pub leds: led::LEDs,
     pub delay: delay::Delay,
-    pub clocks: clocks::Clocks,
 
     /// Core peripheral: Cache and branch predictor maintenance operations
     pub CBP: efm32::CBP,
@@ -140,28 +132,31 @@ pub struct Tomu {
     pub VCMP: efm32::VCMP,
 }
 
-use crate::clocks::ClocksExt;
+use efm32_hal::{
+    cmu::CMUExt,
+    gpio::{EFM32Pin, GPIOExt},
+};
 
 impl Tomu {
     /// Take `Peripherals`  instance, this is called `take`
     /// since we also take efm32's own `Peripherals` which will
     /// cause this method to panic if it's called more than once.
     pub fn take() -> Option<Self> {
-        let mut p = efm32::Peripherals::take()?;
+        let p = efm32::Peripherals::take()?;
         let cp = efm32::CorePeripherals::take()?;
+        let clocks = p.CMU.constrain();
 
-        let mut gpio = gpio::GPIO::new(&mut p.CMU);
-        let led = led::LED::new(&mut gpio);
-        let touch = capacitive::Capacitive::new(&mut gpio);
-        let clocks = p.CMU.constrain().freeze();
+        let cmu = clocks.split();
+        let gpio = p.GPIO.split(cmu.gpio);
+
+        let pa0 = gpio.pa0;
+        let pb7 = gpio.pb7;
+        let leds = led::LEDs::new(pa0.as_opendrain(), pb7.as_opendrain());
 
         Some(Self {
-            clocks,
-            gpio,
-            led,
+            leds,
             watchdog: watchdog::Watchdog::new(p.WDOG),
-            touch,
-            delay: delay::Delay::new(cp.SYST, clocks.clone()),
+            delay: delay::Delay::new(cp.SYST, cmu.hfcoreclk),
 
             // Core peripherals
             CBP: cp.CBP,

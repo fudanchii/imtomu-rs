@@ -21,8 +21,8 @@ toboot_config! {
 fn main() -> ! {
     let mut tomu = Tomu::take().unwrap();
 
-    tomu.led.red().off();
-    tomu.led.green().on();
+    tomu.leds.red.off();
+    tomu.leds.green.on();
 
     loop {
         tomu.watchdog.feed();
