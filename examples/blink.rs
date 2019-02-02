@@ -10,13 +10,20 @@ use tomu::{prelude::*, Tomu};
 #[entry]
 fn main() -> ! {
     let mut tomu = Tomu::take().unwrap();
-    let mut timer = tomu.delay;
     let mut red = tomu.leds.red;
+    let mut green = tomu.leds.green;
+    let mut delay = tomu.delay;
 
     tomu.watchdog.disable();
 
     loop {
+        red.on();
+        delay.delay_ms(500u16);
+        green.on();
+        delay.delay_ms(500u16);
         red.off();
-        timer.delay_ms(100_u32);
+        delay.delay_ms(500u16);
+        green.off();
+        delay.delay_ms(500u16);
     }
 }

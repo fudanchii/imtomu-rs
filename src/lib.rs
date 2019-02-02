@@ -1,17 +1,14 @@
 #![no_std]
 
-use embedded_hal;
-
 pub use efm32;
+pub use efm32_hal::{systick, systick::SystickExt};
 
 #[cfg(feature = "rt")]
 pub use crate::efm32::interrupt;
 
 pub mod toboot;
 
-pub mod delay;
 pub mod led;
-pub mod time;
 pub mod uart;
 pub mod usb;
 pub mod watchdog;
@@ -20,8 +17,6 @@ pub mod watchdog;
 pub use tomu_macros::toboot_config;
 
 pub mod prelude {
-    pub use crate::delay::DelayExt;
-    pub use crate::time::U32Ext;
     pub use embedded_hal::prelude::*;
     pub use embedded_hal::watchdog::Watchdog;
     pub use embedded_hal::watchdog::WatchdogDisable;
@@ -33,7 +28,7 @@ pub struct Tomu {
     #[allow(dead_code)]
     pub watchdog: watchdog::Watchdog,
     pub leds: led::LEDs,
-    pub delay: delay::Delay,
+    pub delay: systick::SystickDelay,
 
     /// Core peripheral: Cache and branch predictor maintenance operations
     pub CBP: efm32::CBP,
@@ -156,7 +151,7 @@ impl Tomu {
         Some(Self {
             leds,
             watchdog: watchdog::Watchdog::new(p.WDOG),
-            delay: delay::Delay::new(cp.SYST, cmu.hfcoreclk),
+            delay: systick::SystickDelay::new(cp.SYST.constrain(), cmu.hfcoreclk),
 
             // Core peripherals
             CBP: cp.CBP,
