@@ -1,6 +1,6 @@
 use efm32_hal::gpio::{
     pins::{PA0, PB7},
-    Output,
+    Normal, OpenDrain, Output, PullUp,
 };
 use embedded_hal::digital::OutputPin;
 
@@ -13,13 +13,16 @@ where
 /// It owns all the leds, and all access to
 /// leds are treated via mutable borrow.
 pub struct LEDs {
-    pub green: LED<PA0<Output>>,
-    pub red: LED<PB7<Output>>,
+    pub green: LED<PA0<Output<OpenDrain<Normal, PullUp>>>>,
+    pub red: LED<PB7<Output<OpenDrain<Normal, PullUp>>>>,
 }
 
 impl LEDs {
     /// Take ownership for the respective pin
-    pub fn new(green: PA0<Output>, red: PB7<Output>) -> Self {
+    pub fn new(
+        green: PA0<Output<OpenDrain<Normal, PullUp>>>,
+        red: PB7<Output<OpenDrain<Normal, PullUp>>>,
+    ) -> Self {
         LEDs {
             green: LED(green),
             red: LED(red),

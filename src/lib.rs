@@ -127,10 +127,7 @@ pub struct Tomu {
     pub VCMP: efm32::VCMP,
 }
 
-use efm32_hal::{
-    cmu::CMUExt,
-    gpio::{EFM32Pin, GPIOExt},
-};
+use efm32_hal::{cmu::CMUExt, gpio::GPIOExt};
 
 impl Tomu {
     /// Take `Peripherals`  instance, this is called `take`
@@ -142,11 +139,11 @@ impl Tomu {
         let clocks = p.CMU.constrain();
 
         let cmu = clocks.split();
-        let gpio = p.GPIO.split(cmu.gpio);
+        let gpio = p.GPIO.split(cmu.gpio).pins();
 
         let pa0 = gpio.pa0;
         let pb7 = gpio.pb7;
-        let leds = led::LEDs::new(pa0.as_opendrain(), pb7.as_opendrain());
+        let leds = led::LEDs::new(pa0.into_wiredand_pulled_up(), pb7.into_wiredand_pulled_up());
 
         Some(Self {
             leds,
