@@ -143,7 +143,7 @@ impl Tomu {
 
         let pa0 = gpio.pa0;
         let pb7 = gpio.pb7;
-        let leds = led::LEDs::new(pa0.into_wiredand_pulled_up(), pb7.into_wiredand_pulled_up());
+        let leds = led::LEDs::new(pa0.into(), pb7.into());
 
         Some(Self {
             leds,
