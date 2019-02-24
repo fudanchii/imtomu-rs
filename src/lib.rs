@@ -20,6 +20,8 @@ pub mod prelude {
     pub use embedded_hal::prelude::*;
     pub use embedded_hal::watchdog::Watchdog;
     pub use embedded_hal::watchdog::WatchdogDisable;
+
+    pub use crate::led::LedTrait;
 }
 
 /// Holds all available tomu peripherals

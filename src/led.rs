@@ -8,6 +8,19 @@ pub struct LED<Out>(Out)
 where
     Out: OutputPin + ?Sized;
 
+/// Public trait for leds, All leds can have common behavior
+/// that it can be turned on, and turned off. This can be used
+/// to set common pins as led type without having to care whether
+/// the led is active high or active low.
+/// XXX: Likely need to implement toggle when it's available.
+pub trait LedTrait {
+    /// Turn on the led.
+    fn on(&mut self);
+
+    /// Turn off the led.
+    fn off(&mut self);
+}
+
 /// LED struct stores all leds available
 /// in tomu board.
 /// It owns all the leds, but access can be moved per led.
@@ -29,15 +42,12 @@ impl LEDs {
     }
 }
 
-impl<Out> LED<Out>
-where
-    Out: OutputPin + ?Sized,
-{
-    pub fn on(&mut self) {
+impl<Out: OutputPin> LedTrait for LED<Out> {
+    fn on(&mut self) {
         self.0.set_low();
     }
 
-    pub fn off(&mut self) {
+    fn off(&mut self) {
         self.0.set_high();
     }
 }
