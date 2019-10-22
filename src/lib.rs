@@ -143,8 +143,6 @@ pub struct Tomu {
     pub VCMP: efm32::VCMP,
 }
 
-use efm32_hal::{cmu::CMUExt, gpio::GPIOExt};
-
 impl Tomu {
     /// Take `Peripherals`  instance, this is called `take`
     /// since we also take efm32's own `Peripherals` which will
