@@ -21,6 +21,13 @@ pub mod prelude {
     pub use embedded_hal::watchdog::Watchdog;
     pub use embedded_hal::watchdog::WatchdogDisable;
 
+    pub use efm32_hal::systick;
+
+    pub use efm32_hal::cmu::CMUExt;
+    pub use efm32_hal::gpio::GPIOExt;
+    pub use efm32_hal::systick::SystickExt;
+
+    pub use crate::led;
     pub use crate::led::LedTrait;
 }
 
@@ -29,8 +36,6 @@ pub mod prelude {
 pub struct Tomu {
     #[allow(dead_code)]
     pub watchdog: watchdog::Watchdog,
-    pub leds: led::LEDs,
-    pub delay: systick::SystickDelay,
 
     /// Core peripheral: Cache and branch predictor maintenance operations
     pub CBP: efm32::CBP,
@@ -74,11 +79,17 @@ pub struct Tomu {
     /// efm32 peripheral: AES
     pub AES: efm32::AES,
 
+    /// efm32 peripheral: CMU
+    pub CMU: efm32::CMU,
+
     /// efm32 peripheral: DMA
     pub DMA: efm32::DMA,
 
     /// efm32 peripheral: EMU
     pub EMU: efm32::EMU,
+
+    /// efm32 peripheral: GPIO
+    pub GPIO: efm32::GPIO,
 
     /// efm32 peripheral: I2C0
     pub I2C0: efm32::I2C0,
@@ -106,6 +117,9 @@ pub struct Tomu {
 
     /// efm32 peripheral: RTC
     pub RTC: efm32::RTC,
+
+    /// efm32 periphral: SYSTICK
+    pub SYST: efm32::SYST,
 
     /// efm32 peripheral: TIMER0
     pub TIMER0: efm32::TIMER0,
@@ -138,19 +152,9 @@ impl Tomu {
     pub fn take() -> Option<Self> {
         let p = efm32::Peripherals::take()?;
         let cp = efm32::CorePeripherals::take()?;
-        let clocks = p.CMU.constrain();
-
-        let cmu = clocks.split();
-        let gpio = p.GPIO.split(cmu.gpio).pins();
-
-        let pa0 = gpio.pa0;
-        let pb7 = gpio.pb7;
-        let leds = led::LEDs::new(pa0.into(), pb7.into());
 
         Some(Self {
-            leds,
             watchdog: watchdog::Watchdog::new(p.WDOG),
-            delay: systick::SystickDelay::new(cp.SYST.constrain(), cmu.hfcoreclk),
 
             // Core peripherals
             CBP: cp.CBP,
@@ -163,14 +167,17 @@ impl Tomu {
             MPU: cp.MPU,
             NVIC: cp.NVIC,
             SCB: cp.SCB,
+            SYST: cp.SYST,
             TPIU: cp.TPIU,
 
             // efm32 peripherals
             ACMP0: p.ACMP0,
             ADC0: p.ADC0,
             AES: p.AES,
+            CMU: p.CMU,
             DMA: p.DMA,
             EMU: p.EMU,
+            GPIO: p.GPIO,
             I2C0: p.I2C0,
             IDAC0: p.IDAC0,
             LEUART0: p.LEUART0,

@@ -10,9 +10,19 @@ use tomu::{prelude::*, Tomu};
 #[entry]
 fn main() -> ! {
     let mut tomu = Tomu::take().unwrap();
-    let mut red = tomu.leds.red;
-    let mut green = tomu.leds.green;
-    let mut delay = tomu.delay;
+
+    let clk_mgmt = tomu.CMU.constrain().split();
+    let gpio = tomu.GPIO.split(clk_mgmt.gpio).pins();
+
+    let leds = led::LEDs::new(gpio.pa0.into(), gpio.pb7.into());
+
+    let mut red = leds.red;
+    let mut green = leds.green;
+
+    let mut delay = systick::SystickDelay::new(
+        tomu.SYST.constrain(),
+        clk_mgmt.hfcoreclk,
+    );
 
     tomu.watchdog.disable();
 
