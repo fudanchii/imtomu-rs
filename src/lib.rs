@@ -118,7 +118,7 @@ pub struct Tomu {
     /// efm32 peripheral: RTC
     pub RTC: efm32::RTC,
 
-    /// efm32 periphral: SYSTICK
+    /// efm32 peripheral: SYSTICK
     pub SYST: efm32::SYST,
 
     /// efm32 peripheral: TIMER0
