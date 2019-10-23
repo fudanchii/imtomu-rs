@@ -16,9 +16,8 @@ package = "efm32hg-pac"
 features = ["rt"]
 
 [dependencies.efm32-hal]
-git = "https://github.com/fudanchii/efm32gg-hal"
-branch = "efm32-hal/efm32hg-support"
-package = "efm32gg-hal"
+git = "https://github.com/fudanchii/efm32hg-hal"
+package = "efm32hg-hal"
 features = ["chip-efm32hg"]
 
 # We don't have direct dependencies to this,
