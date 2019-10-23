@@ -2,7 +2,7 @@ use efm32_hal::gpio::{
     pins::{PA0, PB7},
     Normal, OpenDrain, Output, PullUp,
 };
-use embedded_hal::digital::OutputPin;
+use embedded_hal::digital::v2::OutputPin;
 
 pub struct LED<Out>(Out)
 where
@@ -44,10 +44,10 @@ impl LEDs {
 
 impl<Out: OutputPin> LedTrait for LED<Out> {
     fn on(&mut self) {
-        self.0.set_low();
+        let _ = self.0.set_low();
     }
 
     fn off(&mut self) {
-        self.0.set_high();
+        let _ = self.0.set_high();
     }
 }
