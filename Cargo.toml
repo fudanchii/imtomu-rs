@@ -6,10 +6,19 @@ edition = "2018"
 
 [dependencies]
 cortex-m = "0.5.8"
-efm32 = { git = "https://github.com/jacobrosenthal/efm32hg309f64-pac", features = ["rt"], package="efm32hg309f64-pac" }
 tomu-macros = { path = "macros", optional = true }
-embedded-hal = { version = "0.2.2", features = ["unproven"] }
-cast = {version = "0.2.2",default-features=false }
+embedded-hal = "0.2.2"
+cast = {version = "0.2.2", default-features=false }
+
+[dependencies.efm32]
+git = "https://github.com/em32-rs/efm32hg-pac"
+package = "efm32hg-pac"
+features = ["rt"]
+
+[dependencies.efm32-hal]
+git = "https://github.com/fudanchii/efm32hg-hal"
+package = "efm32hg-hal"
+features = ["chip-efm32hg"]
 
 # We don't have direct dependencies to this,
 # but will need this to build examples
@@ -23,3 +32,4 @@ compiletest_rs = "0.3.17"
 
 [features]
 toboot-custom-config = ["tomu-macros"]
+unproven = ["embedded-hal/unproven"]

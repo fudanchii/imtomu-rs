@@ -13,6 +13,9 @@ use cortex_m_rt::entry;
 
 use tomu::{prelude::*, Tomu};
 
+// this will cause tomu to always enter user application,
+// short the 2 pins on the corner while inserting tomu to
+// enter bootloader.
 toboot_config! {
     config: [autorun_enable],
 }
@@ -21,8 +24,16 @@ toboot_config! {
 fn main() -> ! {
     let mut tomu = Tomu::take().unwrap();
 
-    tomu.led.red().off();
-    tomu.led.green().on();
+    let clk_mgmt = tomu.CMU.constrain().split();
+    let gpio = tomu.GPIO.split(clk_mgmt.gpio).pins();
+
+    let leds = led::LEDs::new(gpio.pa0.into(), gpio.pb7.into());
+
+    let mut red = leds.red;
+    let mut green = leds.green;
+
+    red.off();
+    green.on();
 
     loop {
         tomu.watchdog.feed();

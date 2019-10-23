@@ -1,82 +1,53 @@
-use crate::gpio::{
-    pin::{A0, B7},
-    OpenDrain, GPIO,
+use efm32_hal::gpio::{
+    pins::{PA0, PB7},
+    Normal, OpenDrain, Output, PullUp,
 };
-use embedded_hal::digital::OutputPin;
+use embedded_hal::digital::v2::OutputPin;
 
-/// LED struct stores all leds available
-/// in tomu board.
-/// It owns all the leds, and all access to
-/// leds are treated via mutable borrow.
-pub struct LED {
-    green: A0<OpenDrain>,
-    red: B7<OpenDrain>,
-}
+pub struct LED<Out>(Out)
+where
+    Out: OutputPin + ?Sized;
 
-impl LED {
-    /// Create new LED instance, this is supposed
-    /// to create singleton, but it's not as of currently.
-    /// As we don't have singleton support in GPIO package
-    /// yet.
-    pub fn new(g: &mut GPIO) -> Self {
-        LED {
-            green: g.split::<A0<OpenDrain>>(),
-            red: g.split::<B7<OpenDrain>>(),
-        }
-    }
-
-    /// Mutably borrow green led.
-    /// As per https://github.com/rust-lang/rfcs/issues/1215
-    /// partial borrow for struct field via method call
-    /// is not supported yet as the borrowed field were
-    /// expected to live as long as the borrowed struct.
-    /// So in this case, with binding, green led cannot
-    /// be used with red led in the same scope.
-    ///
-    /// ```no_run
-    /// // this is ok
-    /// p.led.green().on();
-    /// p.led.red().on();
-    ///
-    /// // this is not ok
-    /// let red = p.led.red();
-    /// let green = p.led.green();
-    ///
-    /// // this is ok
-    /// {
-    ///     let red = p.led.red();
-    ///     red.on();
-    /// }
-    /// let green = p.led.green();
-    /// green.on();
-    /// ```
-    pub fn green(&mut self) -> &mut A0<OpenDrain> {
-        &mut self.green
-    }
-
-    /// Mutably borrow red led.
-    /// see `green(&mut self)` documentation
-    /// for more info.
-    pub fn red(&mut self) -> &mut B7<OpenDrain> {
-        &mut self.red
-    }
-}
-
-/// Common trait for leds
+/// Public trait for leds, All leds can have common behavior
+/// that it can be turned on, and turned off. This can be used
+/// to set common pins as led type without having to care whether
+/// the led is active high or active low.
+/// XXX: Likely need to implement toggle when it's available.
 pub trait LedTrait {
-    /// turn on led.
+    /// Turn on the led.
     fn on(&mut self);
 
-    /// turn off led.
+    /// Turn off the led.
     fn off(&mut self);
 }
 
-impl<T: OutputPin> LedTrait for T {
+/// LED struct stores all leds available
+/// in tomu board.
+/// It owns all the leds, but access can be moved per led.
+pub struct LEDs {
+    pub green: LED<PA0<Output<OpenDrain<Normal, PullUp>>>>,
+    pub red: LED<PB7<Output<OpenDrain<Normal, PullUp>>>>,
+}
+
+impl LEDs {
+    /// Take ownership for the respective pin
+    pub fn new(
+        green: PA0<Output<OpenDrain<Normal, PullUp>>>,
+        red: PB7<Output<OpenDrain<Normal, PullUp>>>,
+    ) -> Self {
+        LEDs {
+            green: LED(green),
+            red: LED(red),
+        }
+    }
+}
+
+impl<Out: OutputPin> LedTrait for LED<Out> {
     fn on(&mut self) {
-        self.set_low();
+        let _ = self.0.set_low();
     }
 
     fn off(&mut self) {
-        self.set_high();
+        let _ = self.0.set_high();
     }
 }

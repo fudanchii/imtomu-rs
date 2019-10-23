@@ -1,20 +1,14 @@
 #![no_std]
 
-use embedded_hal;
-
 pub use efm32;
+pub use efm32_hal::{systick, systick::SystickExt};
 
 #[cfg(feature = "rt")]
 pub use crate::efm32::interrupt;
 
 pub mod toboot;
 
-pub mod capacitive;
-pub mod clocks;
-pub mod delay;
-pub mod gpio;
 pub mod led;
-pub mod time;
 pub mod uart;
 pub mod usb;
 pub mod watchdog;
@@ -23,25 +17,25 @@ pub mod watchdog;
 pub use tomu_macros::toboot_config;
 
 pub mod prelude {
-    pub use crate::clocks::ClocksExt;
-    pub use crate::delay::DelayExt;
-    pub use crate::led::LedTrait;
-    pub use crate::time::U32Ext;
     pub use embedded_hal::prelude::*;
     pub use embedded_hal::watchdog::Watchdog;
     pub use embedded_hal::watchdog::WatchdogDisable;
+
+    pub use efm32_hal::systick;
+
+    pub use efm32_hal::cmu::CMUExt;
+    pub use efm32_hal::gpio::GPIOExt;
+    pub use efm32_hal::systick::SystickExt;
+
+    pub use crate::led;
+    pub use crate::led::LedTrait;
 }
 
 /// Holds all available tomu peripherals
 #[allow(non_snake_case)]
 pub struct Tomu {
     #[allow(dead_code)]
-    pub gpio: gpio::GPIO,
     pub watchdog: watchdog::Watchdog,
-    pub led: led::LED,
-    pub touch: capacitive::Capacitive,
-    pub delay: delay::Delay,
-    pub clocks: clocks::Clocks,
 
     /// Core peripheral: Cache and branch predictor maintenance operations
     pub CBP: efm32::CBP,
@@ -85,11 +79,17 @@ pub struct Tomu {
     /// efm32 peripheral: AES
     pub AES: efm32::AES,
 
+    /// efm32 peripheral: CMU
+    pub CMU: efm32::CMU,
+
     /// efm32 peripheral: DMA
     pub DMA: efm32::DMA,
 
     /// efm32 peripheral: EMU
     pub EMU: efm32::EMU,
+
+    /// efm32 peripheral: GPIO
+    pub GPIO: efm32::GPIO,
 
     /// efm32 peripheral: I2C0
     pub I2C0: efm32::I2C0,
@@ -118,6 +118,9 @@ pub struct Tomu {
     /// efm32 peripheral: RTC
     pub RTC: efm32::RTC,
 
+    /// efm32 peripheral: SYSTICK
+    pub SYST: efm32::SYST,
+
     /// efm32 peripheral: TIMER0
     pub TIMER0: efm32::TIMER0,
 
@@ -140,28 +143,16 @@ pub struct Tomu {
     pub VCMP: efm32::VCMP,
 }
 
-use crate::clocks::ClocksExt;
-
 impl Tomu {
     /// Take `Peripherals`  instance, this is called `take`
     /// since we also take efm32's own `Peripherals` which will
     /// cause this method to panic if it's called more than once.
     pub fn take() -> Option<Self> {
-        let mut p = efm32::Peripherals::take()?;
+        let p = efm32::Peripherals::take()?;
         let cp = efm32::CorePeripherals::take()?;
 
-        let mut gpio = gpio::GPIO::new(&mut p.CMU);
-        let led = led::LED::new(&mut gpio);
-        let touch = capacitive::Capacitive::new(&mut gpio);
-        let clocks = p.CMU.constrain().freeze();
-
         Some(Self {
-            clocks,
-            gpio,
-            led,
             watchdog: watchdog::Watchdog::new(p.WDOG),
-            touch,
-            delay: delay::Delay::new(cp.SYST, clocks.clone()),
 
             // Core peripherals
             CBP: cp.CBP,
@@ -174,14 +165,17 @@ impl Tomu {
             MPU: cp.MPU,
             NVIC: cp.NVIC,
             SCB: cp.SCB,
+            SYST: cp.SYST,
             TPIU: cp.TPIU,
 
             // efm32 peripherals
             ACMP0: p.ACMP0,
             ADC0: p.ADC0,
             AES: p.AES,
+            CMU: p.CMU,
             DMA: p.DMA,
             EMU: p.EMU,
+            GPIO: p.GPIO,
             I2C0: p.I2C0,
             IDAC0: p.IDAC0,
             LEUART0: p.LEUART0,
