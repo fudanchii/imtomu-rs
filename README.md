@@ -39,7 +39,7 @@ usage
 ---
 
 ```
-cargo run --example touch_button --release
+cargo run --example blink --release
 
 ```
 toboot config
