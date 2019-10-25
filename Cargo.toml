@@ -1,24 +1,24 @@
 [package]
 name = "tomu"
 version = "0.1.0"
-authors = ["Nurahmadie <nurahmadie@gmail.com>"]
+authors = [ "Nurahmadie <nurahmadie@gmail.com>" ]
 edition = "2018"
 
 [dependencies]
 cortex-m = "0.5.8"
 tomu-macros = { path = "macros", optional = true }
 embedded-hal = "0.2.2"
-cast = {version = "0.2.2", default-features=false }
+cast = { version = "0.2.2", default-features = false }
 
 [dependencies.efm32]
 git = "https://github.com/em32-rs/efm32hg-pac"
 package = "efm32hg-pac"
-features = ["rt"]
+features = [ "rt" ]
 
 [dependencies.efm32-hal]
 git = "https://github.com/fudanchii/efm32hg-hal"
 package = "efm32hg-hal"
-features = ["chip-efm32hg"]
+features = [ "chip-efm32hg" ]
 
 # We don't have direct dependencies to this,
 # but will need this to build examples
@@ -31,5 +31,5 @@ tomu-macros = { path = "macros" }
 compiletest_rs = "0.3.17"
 
 [features]
-toboot-custom-config = ["tomu-macros"]
-unproven = ["embedded-hal/unproven"]
+toboot-custom-config = [ "tomu-macros" ]
+unproven = [ "embedded-hal/unproven", "efm32-hal/unproven" ]
