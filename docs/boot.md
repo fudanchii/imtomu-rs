@@ -56,10 +56,21 @@ The boot sequence is as following:
 
    After this, toboot then setting up the 2 available leds. It first set GPIO at port.0 pin.0 (PA0) to normal wired-and mode (open drain), and drive it high to turn off the green led.
 
-   Then it set GPIO at port.1 pin.7 (PB7) also to normal wired-and mode (open drain), and drive it low o turn on the red led.
+   Then it set GPIO at port.1 pin.7 (PB7) also to normal wired-and mode (open drain), and drive it low to turn on the red led.
 
    Toboot then enables watchdog.
 
-   It re-assign watchdog's clock source with `ULFRCO`, re-enable watchdog, and set the `PERSEL` register bit to 3. This is setting the watchdog to be trigger reset after 65 clock cycle. In toboot case, it's 65 / 1KHz so it will reset afte 0.065s.
+   It re-assign watchdog's clock source with `ULFRCO`, re-enable watchdog, and set the `PERSEL` register bit to 3. This is setting the watchdog to be trigger reset after 65 clock cycle. In toboot case, it's 65 / 1KHz so it will reset after 0.065s.
 
    Then toboot starts RTC clock by calling `start_rtc` function.
+
+   `start_rtc`  
+   ---
+   Toboot first enable `LFRCO` oscillator, then enable `RTC` to be clocked by `LFA`. This function then goes clearing all interrupt flag for `RTC`, `COMP0`, `COMP1`, and `OF` (overflow). Then toboot set `COMP0` at (250 * 32768) / 1000 which translate to 250ms period. Toboot then enable interrupt at `COMP0` coupled with `COMP0` value before, this will causing `COMP0` interrupt every 250ms. But RTC hasn't running yet, toboot continue enabling `NVIC` interrupt service on `RTC` by setting `NVIC`'s `ISER` register and setting `RTC`'s IRQ bit.
+
+   Lastly, this function set `RTC` to tick until `COMP0` value, keep running at debug (`DEBUGRUN` bit set), and enable the `RTC` to run.
+
+   clock state:
+   - `LFRCO` started here, running at 32KHz (32768Hz)
+   - `COMP0` set to (250 * 32768) / 1000
+   - `RTC` set to tick until `COMP0` value (250ms).
