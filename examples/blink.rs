@@ -17,7 +17,7 @@ fn main() -> ! {
     let gpio = tomu.GPIO.split(clk_mgmt.gpio).pins();
 
     // create tomu's led instance from gpio pin
-    let leds = led::LEDs::new(gpio.pa0.into(), gpio.pb7.into());
+    let leds = led::Defaults::new(gpio.pa0.into(), gpio.pb7.into());
 
     let mut red = leds.red;
     let mut green = leds.green;
