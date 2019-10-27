@@ -24,23 +24,29 @@ pub trait LedTrait {
 /// LED struct stores all leds available
 /// in tomu board.
 /// It owns all the leds, but access can be moved per led.
-pub struct LEDs {
+pub struct Defaults {
     pub green: LED<PA0<Output<OpenDrain<Normal, PullUp>>>>,
     pub red: LED<PB7<Output<OpenDrain<Normal, PullUp>>>>,
 }
 
-impl LEDs {
+impl Defaults {
     /// Take ownership for the respective pin
     pub fn new(
         green: PA0<Output<OpenDrain<Normal, PullUp>>>,
         red: PB7<Output<OpenDrain<Normal, PullUp>>>,
     ) -> Self {
-        LEDs {
+        Defaults {
             green: LED(green),
             red: LED(red),
         }
     }
 }
+
+#[deprecated(
+    since = "0.1.1",
+    note = "Please use 'led::Defaults' instead"
+)]
+pub type LEDs = Defaults;
 
 impl<Out: OutputPin> LedTrait for LED<Out> {
     fn on(&mut self) {
