@@ -3,10 +3,12 @@ use efm32_hal::gpio::{
     Normal, OpenDrain, Output, PullUp,
 };
 use embedded_hal::digital::v2::OutputPin;
+#[cfg(feature = "unproven")]
+use embedded_hal::digital::v2::ToggleableOutputPin;
 
-pub struct LED<Out>(Out)
+pub struct LED<T>(T)
 where
-    Out: OutputPin + ?Sized;
+    T: ?Sized;
 
 /// Public trait for leds, All leds can have common behavior
 /// that it can be turned on, and turned off. This can be used
@@ -19,6 +21,9 @@ pub trait LedTrait {
 
     /// Turn off the led.
     fn off(&mut self);
+
+    #[cfg(feature = "unproven")]
+    fn toggle(&mut self);
 }
 
 /// LED struct stores all leds available
@@ -42,12 +47,28 @@ impl LEDs {
     }
 }
 
-impl<Out: OutputPin> LedTrait for LED<Out> {
+#[cfg(not(feature = "unproven"))]
+impl<T: OutputPin> LedTrait for LED<T> {
     fn on(&mut self) {
         let _ = self.0.set_low();
     }
 
     fn off(&mut self) {
         let _ = self.0.set_high();
+    }
+}
+
+#[cfg(feature = "unproven")]
+impl<T: OutputPin + ToggleableOutputPin> LedTrait for LED<T> {
+    fn on(&mut self) {
+        let _ = self.0.set_low();
+    }
+
+    fn off(&mut self) {
+        let _ = self.0.set_high();
+    }
+
+    fn toggle(&mut self) {
+        let _ = self.0.toggle();
     }
 }
