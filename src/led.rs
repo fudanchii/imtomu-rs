@@ -14,7 +14,6 @@ where
 /// that it can be turned on, and turned off. This can be used
 /// to set common pins as led type without having to care whether
 /// the led is active high or active low.
-/// XXX: Likely need to implement toggle when it's available.
 pub trait LedTrait {
     /// Turn on the led.
     fn on(&mut self);
