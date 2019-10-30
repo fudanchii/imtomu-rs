@@ -3,10 +3,14 @@
 
 extern crate panic_halt;
 
-use cortex_m_rt::entry;
-use cortex_m::asm;
+use core::cell::Cell;
 
-use tomu::Tomu;
+use cortex_m_rt::entry;
+use cortex_m::{asm, interrupt as intr, interrupt::Mutex};
+
+use tomu::{interrupt, Tomu};
+
+static TIMER1READY: Mutex<Cell<bool>> = Mutex::new(Cell::new(false));
 
 #[entry]
 fn main() -> ! {
@@ -79,5 +83,75 @@ fn main() -> ! {
     tomu.TIMER1.ien.write(|w| w.of().set_bit() );
     tomu.TIMER1.cnt.write(|w| unsafe { w.cnt().bits(0u16) });
 
-    loop { asm::nop(); }
+    let mut ch: usize = 0;
+    let mut touch = 0;
+    let mut present = 0;
+    let mut since_last_touch = 0;
+    let mut count_max: [u16; 2] = [0, 0];
+
+    loop {
+        let ready = intr::free(|cs| TIMER1READY.borrow(cs).get());
+
+        if !ready {
+            asm::wfi();
+            continue;
+        }
+
+        let count = measure_stop(&tomu);
+
+        let threshold = count_max[ch] - count_max[ch] / 2;
+        if count > 0 && count < threshold.into() {
+            touch |= 1 << ch;
+        } else {
+            touch &= !(1 << ch);
+        }
+
+        if count > threshold.into() {
+            count_max[ch] = (count_max[ch] + count as u16) / 2;
+        }
+
+        if present > 0 {
+            present -= 1;
+        }
+
+        if touch > 0 {
+            if since_last_touch > 10 {
+                if present > 0 {
+                    present = 0;
+                } else {
+                    present = 500;
+                }
+            }
+            since_last_touch = 0;
+        } else {
+            since_last_touch += 1;
+        }
+
+        if since_last_touch > 1000 {
+            since_last_touch = 1000;
+        }
+
+        ch ^= 1;
+        measure_start(ch as u8, &tomu);
+    }
+}
+
+fn measure_start(ch: u8, tomu: &Tomu) {
+    tomu.ACMP0.inputsel.modify(|_, w| w.possel().bits(ch));
+    tomu.TIMER0.cnt.write(|w| unsafe { w.cnt().bits(0u16) });
+    tomu.TIMER1.cnt.write(|w| unsafe { w.cnt().bits(0u16) });
+    tomu.TIMER0.cmd.write(|w| w.start().set_bit());
+    tomu.TIMER1.cmd.write(|w| w.start().set_bit());
+}
+
+fn measure_stop(tomu: &Tomu) -> u32 {
+    tomu.TIMER0.cmd.write(|w| w.stop().set_bit());
+    tomu.TIMER1.cmd.write(|w| w.stop().set_bit());
+    tomu.TIMER1.ifc.write(|w| w.of().set_bit());
+    tomu.TIMER0.cnt.read().bits()
+}
+
+#[interrupt]
+fn TIMER1() {
+    intr::free(|cs| TIMER1READY.borrow(cs).set(true));
 }

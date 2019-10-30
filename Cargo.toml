@@ -33,6 +33,8 @@ compiletest_rs = "0.3.17"
 [features]
 toboot-custom-config = [ "tomu-macros" ]
 unproven = [ "embedded-hal/unproven", "efm32-hal/unproven" ]
+rt = [ ]
+default = [ "rt" ]
 
 [[example]]
 name = "toggle_blink"
