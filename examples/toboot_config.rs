@@ -1,7 +1,6 @@
 #![no_std]
 #![no_main]
 
-extern crate panic_halt;
 
 // For non-examples (i.e. an actual crate)
 // tomu_macros don't need to be explicitly
@@ -10,7 +9,7 @@ extern crate panic_halt;
 use tomu_macros::toboot_config;
 
 use cortex_m_rt::entry;
-
+use panic_halt as _;
 use tomu::{prelude::*, Tomu};
 
 // this will cause tomu to always enter user application,
