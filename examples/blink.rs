@@ -1,10 +1,8 @@
 #![no_std]
 #![no_main]
 
-extern crate panic_halt;
-
 use cortex_m_rt::entry;
-
+use panic_halt as _;
 use tomu::{prelude::*, Tomu};
 
 #[entry]
