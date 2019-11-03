@@ -5,7 +5,7 @@ authors = [ "Nurahmadie <nurahmadie@gmail.com>" ]
 edition = "2018"
 
 [dependencies]
-cortex-m = "0.5.8"
+cortex-m = "0.6.1"
 tomu-macros = { path = "macros", optional = true }
 embedded-hal = "0.2.2"
 cast = { version = "0.2.2", default-features = false }
@@ -23,8 +23,8 @@ features = [ "chip-efm32hg" ]
 # We don't have direct dependencies to this,
 # but will need this to build examples
 [dev-dependencies]
-cortex-m-rt = "*"
-panic-halt = "*"
+cortex-m-rt = "0.6.10"
+panic-halt = "0.2.0"
 tomu-macros = { path = "macros" }
 
 [target.'cfg(not(target_os = "none"))'.dev-dependencies]
@@ -36,4 +36,8 @@ unproven = [ "embedded-hal/unproven", "efm32-hal/unproven" ]
 
 [[example]]
 name = "toggle_blink"
+required-features = [ "unproven" ]
+
+[[example]]
+name = "pac_rtc_interrupt"
 required-features = [ "unproven" ]
