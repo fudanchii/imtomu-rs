@@ -15,11 +15,14 @@ use tomu::{interrupt, Tomu, prelude::*};
 static _ACMP0: Mutex<RefCell<Option<efm32::ACMP0>>> = Mutex::new(RefCell::new(None));
 static _TIMER0: Mutex<RefCell<Option<efm32::TIMER0>>> = Mutex::new(RefCell::new(None));
 static _TIMER1: Mutex<RefCell<Option<efm32::TIMER1>>> = Mutex::new(RefCell::new(None));
+static DELAY: Mutex<RefCell<Option<systick::SystickDelay>>> = Mutex::new(RefCell::new(None));
 static GREENLED: Mutex<RefCell<Option<led::LED<pins::PA0<Output<OpenDrain<Normal, PullUp>>>>>>> = Mutex::new(RefCell::new(None));
 
 #[entry]
 fn main() -> ! {
-    let tomu = Tomu::take().unwrap();
+    let mut tomu = Tomu::take().unwrap();
+
+    tomu.watchdog.disable();
 
     clock_setup(&tomu);
 
@@ -38,6 +41,11 @@ fn main() -> ! {
     let mut red = leds.red;
     let green = leds.green;
 
+    let delay = systick::SystickDelay::new(
+        tomu.SYST.constrain(),
+        clk_mgmt.hfcoreclk,
+    );
+
     red.off();
 
     efm32::NVIC::unpend(interrupt::TIMER1);
@@ -51,17 +59,28 @@ fn main() -> ! {
         _TIMER0.borrow(lock).replace(Some(timer0));
         _TIMER1.borrow(lock).replace(Some(timer1));
         GREENLED.borrow(lock).replace(Some(green));
+        DELAY.borrow(lock).replace(Some(delay));
     });
+
+    measure_start();
 
     loop { asm::wfi() }
 }
 
 #[interrupt]
 fn TIMER1() {
-    let _ = measure_stop();
+    let count = measure_stop();
 
-    intr::free(|lock| if let &mut Some(ref mut green) = GREENLED.borrow(lock).borrow_mut().deref_mut() {
-        green.toggle();
+    // capacitance will be lower if capsense get touched, so the green led will blinking
+    // faster. Around  ~1 second light period when it's not touched, to
+    // 100ms light period when it is touched
+    intr::free(|lock| if let (&mut Some(ref mut green), &mut Some(ref mut delay)) = (
+            GREENLED.borrow(lock).borrow_mut().deref_mut(),
+            DELAY.borrow(lock).borrow_mut().deref_mut(),
+    ) {
+        green.on();
+        delay.delay_ms(count/100);
+        green.off();
     });
 
     measure_start();
@@ -156,7 +175,9 @@ fn timer_setup(tomu: &Tomu) {
     });
 
     tomu.TIMER1.ctrl.write(|w| w.presc().div1024());
-    tomu.TIMER1.top.write(|w| unsafe { w.top().bits(20508u16) });
+
+    // scan time 100ms
+    tomu.TIMER1.top.write(|w| unsafe { w.top().bits(2051u16) });
     tomu.TIMER1.ien.write(|w| w.of().set_bit() );
     tomu.TIMER1.cnt.write(|w| unsafe { w.cnt().bits(0u16) });
 }
