@@ -51,23 +51,26 @@ fn main() -> ! {
     tomu.RTC.freeze.reset();
     tomu.RTC.ctrl.reset();
     tomu.RTC.ien.reset();
-    tomu.RTC.ifc.write(|w| w.comp0().set_bit());
-    tomu.RTC.ifc.write(|w| w.comp1().set_bit());
-    tomu.RTC.ifc.write(|w| w.of().set_bit());
+    tomu.RTC
+        .ifc
+        .write(|w| w.comp0().set_bit().comp1().set_bit().of().set_bit());
     tomu.RTC.comp0.reset();
     tomu.RTC.comp1.reset();
 
     // Interrupt when matching custom compare value:
     // 65536 / 32768 Hz = 2 secs
     tomu.RTC.comp0.write(|w| unsafe { w.comp0().bits(65_536) });
-    tomu.RTC.ien.write(|w| w.comp0().set_bit());
+    tomu.RTC.ien.modify(|_, w| w.comp0().set_bit());
+
+    // Cap counter at `comp0` value.
+    tomu.RTC.ctrl.modify(|_, w| w.comp0top().set_bit());
 
     // Enable RTC interrupts.
     efm32::NVIC::unpend(efm32::Interrupt::RTC);
     tomu.NVIC.enable(efm32::Interrupt::RTC);
 
     // Start RTC.
-    tomu.RTC.ctrl.write(|w| w.en().set_bit());
+    tomu.RTC.ctrl.modify(|_, w| w.en().set_bit());
 
     // Nothing else to do here, just wait and process interrupts.
     loop {
@@ -81,18 +84,13 @@ fn RTC() {
     let rtc = tomu::efm32::RTC::ptr();
     cortex_m::interrupt::free(|_| {
         unsafe {
-            // Pause and clear RTC.
-            // NOTE(lucab): ctrl.comp0top is equivalent but does not seem to work.
-            (*rtc).ctrl.write(|w| w.en().clear_bit());
+            // Clear interrupt.
             (*rtc).ifc.write(|w| w.comp0().set_bit());
 
             // Toggle green LED.
             if let Some(ref mut green) = GREEN {
                 green.toggle();
             };
-
-            // Restart RTC.
-            (*rtc).ctrl.write(|w| w.en().set_bit());
         };
     });
 }
