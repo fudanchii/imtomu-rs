@@ -5,12 +5,12 @@
 ///
 /// This is an example on how to configure touch sense (capsense) in
 /// efm32hg309 (imtomu) board. Capsense enabled by configuring ACMP0's
-/// negative signal in `capsense` mode, and routes the generated pulse
+/// negative signal in `capsense` mode, and route the generated pulse
 /// to TIMER0 via PRS channel.
 ///
-/// Another timer, TIMER1, acted as timekeeper and record the puls counted by
-/// TIMER0, and when ACMP's ch0 pad (GPIO PC0) sensing finger touch, the pulse
-/// periode will be lower and so resulting in smaller counter in TIMER0.
+/// Another timer, TIMER1, acted as timekeeper and record the pulse counted by
+/// TIMER0, and when ACMP0's ch0 pad (GPIO PC0) sensing finger touch, the pulse
+/// periode will be slower and so resulting in smaller counter in TIMER0.
 ///
 /// In this example we normalize the counter and use it as a blink period.
 /// The green led will blink faster when the capsense is touched.
