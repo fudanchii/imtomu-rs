@@ -1,22 +1,37 @@
 #![no_std]
 #![no_main]
 
-extern crate panic_halt;
+/// imtomu-rs examples: pac_capsense.rs
+///
+/// This is an example on how to configure touch sense (capsense) in
+/// efm32hg309 (imtomu) board. Capsense enabled by configuring ACMP0's
+/// negative signal in `capsense` mode, and routes the generated pulse
+/// to TIMER0 via PRS channel.
+///
+/// Another timer, TIMER1, acted as timekeeper and record the puls counted by
+/// TIMER0, and when ACMP's ch0 pad (GPIO PC0) sensing finger touch, the pulse
+/// periode will be lower and so resulting in smaller counter in TIMER0.
+///
+/// In this example we normalize the counter and use it as a blink period.
+/// The green led will blink faster when the capsense is touched.
 
-use core::ops::DerefMut;
+use panic_halt as _;
+
 use core::cell::RefCell;
+use core::ops::DerefMut;
 
-use cortex_m_rt::entry;
 use cortex_m::{asm, interrupt as intr, interrupt::Mutex};
+use cortex_m_rt::entry;
 
 use efm32_hal::gpio::*;
-use tomu::{interrupt, Tomu, prelude::*};
+use tomu::{interrupt, prelude::*, Tomu};
 
 static _ACMP0: Mutex<RefCell<Option<efm32::ACMP0>>> = Mutex::new(RefCell::new(None));
 static _TIMER0: Mutex<RefCell<Option<efm32::TIMER0>>> = Mutex::new(RefCell::new(None));
 static _TIMER1: Mutex<RefCell<Option<efm32::TIMER1>>> = Mutex::new(RefCell::new(None));
 static DELAY: Mutex<RefCell<Option<systick::SystickDelay>>> = Mutex::new(RefCell::new(None));
-static GREENLED: Mutex<RefCell<Option<led::LED<pins::PA0<Output<OpenDrain<Normal, PullUp>>>>>>> = Mutex::new(RefCell::new(None));
+static GREENLED: Mutex<RefCell<Option<led::LED<pins::PA0<Output<OpenDrain<Normal, PullUp>>>>>>> =
+    Mutex::new(RefCell::new(None));
 
 #[entry]
 fn main() -> ! {
@@ -41,10 +56,7 @@ fn main() -> ! {
     let mut red = leds.red;
     let green = leds.green;
 
-    let delay = systick::SystickDelay::new(
-        tomu.SYST.constrain(),
-        clk_mgmt.hfcoreclk,
-    );
+    let delay = systick::SystickDelay::new(tomu.SYST.constrain(), clk_mgmt.hfcoreclk);
 
     red.off();
 
@@ -64,7 +76,9 @@ fn main() -> ! {
 
     measure_start();
 
-    loop { asm::wfi() }
+    loop {
+        asm::wfi()
+    }
 }
 
 #[interrupt]
@@ -74,77 +88,79 @@ fn TIMER1() {
     // capacitance will be lower if capsense get touched, so the green led will blinking
     // faster. Around  ~1 second light period when it's not touched, to
     // 100ms light period when it is touched
-    intr::free(|lock| if let (&mut Some(ref mut green), &mut Some(ref mut delay)) = (
+    intr::free(|lock| {
+        if let (&mut Some(ref mut green), &mut Some(ref mut delay)) = (
             GREENLED.borrow(lock).borrow_mut().deref_mut(),
             DELAY.borrow(lock).borrow_mut().deref_mut(),
-    ) {
-        green.on();
-        delay.delay_ms(count/100);
-        green.off();
+        ) {
+            green.on();
+            delay.delay_ms(count / 100);
+            green.off();
+        }
     });
 
     measure_start();
 }
 
 fn measure_start() {
-    intr::free(|lock| if let (&mut Some(ref mut timer0), &mut Some(ref mut timer1)) = (
+    intr::free(|lock| {
+        if let (&mut Some(ref mut timer0), &mut Some(ref mut timer1)) = (
             _TIMER0.borrow(lock).borrow_mut().deref_mut(),
             _TIMER1.borrow(lock).borrow_mut().deref_mut(),
-    ) {
-        timer0.cnt.write(|w| unsafe { w.cnt().bits(0u16) });
-        timer1.cnt.write(|w| unsafe { w.cnt().bits(0u16) });
-        timer0.cmd.write(|w| w.start().set_bit());
-        timer1.cmd.write(|w| w.start().set_bit());
+        ) {
+            timer0.cnt.reset();
+            timer1.cnt.reset();
+            timer0.cmd.write(|w| w.start().set_bit());
+            timer1.cmd.write(|w| w.start().set_bit());
+        }
     });
 }
 
 fn measure_stop() -> u16 {
-    intr::free(|lock| if let (&mut Some(ref mut timer0), &mut Some(ref mut timer1)) = (
+    intr::free(|lock| {
+        if let (&mut Some(ref mut timer0), &mut Some(ref mut timer1)) = (
             _TIMER0.borrow(lock).borrow_mut().deref_mut(),
             _TIMER1.borrow(lock).borrow_mut().deref_mut(),
-    ) {
-        timer0.cmd.write(|w| w.stop().set_bit());
-        timer1.cmd.write(|w| w.stop().set_bit());
-        timer1.ifc.write(|w| w.of().set_bit());
-        timer0.cnt.read().cnt().bits()
-    } else { 0 })
+        ) {
+            timer0.cmd.write(|w| w.stop().set_bit());
+            timer1.cmd.write(|w| w.stop().set_bit());
+            timer1.ifc.write(|w| w.of().set_bit());
+            timer0.cnt.read().cnt().bits()
+        } else {
+            0
+        }
+    })
 }
 
 fn clock_setup(tomu: &Tomu) {
-    tomu.CMU.hfperclken0.write(|w| w
-        .acmp0().set_bit()
-        .timer0().set_bit()
-        .timer1().set_bit()
-        .prs().set_bit()
-    );
+    tomu.CMU.hfperclken0.modify(|_, w| {
+        w.acmp0().set_bit()
+         .timer0().set_bit()
+         .timer1().set_bit()
+         .prs().set_bit()
+    });
 }
 
 fn acmp0_setup(tomu: &Tomu) {
     tomu.ACMP0.ctrl.write(|w| unsafe {
-        w
-            .fullbias().clear_bit()
-            .halfbias().clear_bit()
-            .biasprog().bits(7u8)
-            .warmtime()._512cycles()
-            .hystsel().hyst5()
+        w.fullbias().clear_bit()
+         .halfbias().clear_bit()
+         .biasprog().bits(7u8)
+         .warmtime()._512cycles()
+         .hystsel().hyst5()
     });
 
     tomu.ACMP0.inputsel.write(|w| unsafe {
-        w
-            .csressel().res3()
-            .csresen().set_bit()
-            .lpref().clear_bit()
-            .vddlevel().bits(0x3du8)
-            .negsel().capsense()
+        w.csressel().res3()
+         .csresen().set_bit()
+         .lpref().clear_bit()
+         .vddlevel().bits(0x3du8)
+         .negsel().capsense()
     });
 
-    tomu.ACMP0.ctrl.modify(|_, w|
-        w.en().set_bit()
-    );
+    tomu.ACMP0.ctrl.modify(|_, w| w.en().set_bit());
 
-    tomu.ACMP0.inputsel.modify(|_, w|
-        w.possel().ch0()
-    );
+    tomu.ACMP0.inputsel.modify(|_, w| w.possel().ch0());
 
     while !tomu.ACMP0.status.read().acmpact().bit_is_set() {
         asm::nop();
@@ -152,32 +168,27 @@ fn acmp0_setup(tomu: &Tomu) {
 }
 
 fn timer_setup(tomu: &Tomu) {
-    tomu.TIMER0.ctrl.write(|w| w
-        .presc().div1024()
-        .clksel().cc1()
-    );
+    tomu.TIMER0
+        .ctrl
+        .write(|w| w.presc().div1024().clksel().cc1());
 
-    tomu.TIMER0.top.write(|w| unsafe { w.bits(0xffffu32) });
+    tomu.TIMER0.top.reset();
 
-    tomu.TIMER0.cc1_ctrl.write(|w| w
-        .mode().inputcapture()
-        .prssel().prsch0()
-        .insel().set_bit()
-        .icevctrl().rising()
-        .icedge().both()
-    );
-
-    tomu.PRS.ch0_ctrl.write(|w| unsafe {
-        w
-            .edsel().posedge()
-            .sourcesel().acmp0()
-            .sigsel().bits(0u8)
+    tomu.TIMER0.cc1_ctrl.write(|w| {
+        w.mode().inputcapture()
+         .prssel().prsch0()
+         .insel().set_bit()
+         .icevctrl().rising()
+         .icedge().both()
     });
+
+    tomu.PRS
+        .ch0_ctrl
+        .write(|w| unsafe { w.edsel().posedge().sourcesel().acmp0().sigsel().bits(0u8) });
 
     tomu.TIMER1.ctrl.write(|w| w.presc().div1024());
 
     // scan time 100ms
     tomu.TIMER1.top.write(|w| unsafe { w.top().bits(2051u16) });
-    tomu.TIMER1.ien.write(|w| w.of().set_bit() );
-    tomu.TIMER1.cnt.write(|w| unsafe { w.cnt().bits(0u16) });
+    tomu.TIMER1.ien.write(|w| w.of().set_bit());
 }

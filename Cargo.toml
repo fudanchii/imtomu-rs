@@ -13,7 +13,6 @@ cast = { version = "0.2.2", default-features = false }
 [dependencies.efm32]
 git = "https://github.com/em32-rs/efm32hg-pac"
 package = "efm32hg-pac"
-features = [ "rt" ]
 
 [dependencies.efm32-hal]
 git = "https://github.com/fudanchii/efm32hg-hal"
@@ -33,7 +32,7 @@ compiletest_rs = "0.3.17"
 [features]
 toboot-custom-config = [ "tomu-macros" ]
 unproven = [ "embedded-hal/unproven", "efm32-hal/unproven" ]
-rt = [ ]
+rt = [ "efm32/rt" ]
 default = [ "rt" ]
 
 [[example]]
