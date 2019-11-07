@@ -1,7 +1,7 @@
 #![no_std]
 
 pub use efm32;
-pub use efm32_hal::{systick, systick::SystickExt};
+pub use efm32_hal::{systick, systick::SystickExt, watchdog::WatchdogExt};
 
 #[cfg(feature = "rt")]
 pub use crate::efm32::interrupt;
@@ -11,7 +11,6 @@ pub mod toboot;
 pub mod led;
 pub mod uart;
 pub mod usb;
-pub mod watchdog;
 
 #[cfg(feature = "toboot-custom-config")]
 pub use tomu_macros::toboot_config;
@@ -26,6 +25,7 @@ pub mod prelude {
     pub use efm32_hal::cmu::CMUExt;
     pub use efm32_hal::gpio::GPIOExt;
     pub use efm32_hal::systick::SystickExt;
+    pub use efm32_hal::watchdog::WatchdogExt;
 
     pub use crate::led;
     pub use crate::led::LedTrait;
@@ -35,7 +35,7 @@ pub mod prelude {
 #[allow(non_snake_case)]
 pub struct Tomu {
     #[allow(dead_code)]
-    pub watchdog: watchdog::Watchdog,
+    pub watchdog: efm32_hal::watchdog::Watchdog,
 
     /// Core peripheral: Cache and branch predictor maintenance operations
     pub CBP: efm32::CBP,
@@ -152,7 +152,7 @@ impl Tomu {
         let cp = efm32::CorePeripherals::take()?;
 
         Some(Self {
-            watchdog: watchdog::Watchdog::new(p.WDOG),
+            watchdog: p.WDOG.constrain(),
 
             // Core peripherals
             CBP: cp.CBP,
