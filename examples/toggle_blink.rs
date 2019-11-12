@@ -20,10 +20,7 @@ fn main() -> ! {
     let mut red = leds.red;
     let mut green = leds.green;
 
-    let mut delay = systick::SystickDelay::new(
-        tomu.SYST.constrain(),
-        clk_mgmt.hfcoreclk,
-    );
+    let mut delay = systick::SystickDelay::new(tomu.SYST.constrain(), clk_mgmt.hfcoreclk);
 
     tomu.watchdog.disable();
 
@@ -36,35 +33,34 @@ fn main() -> ! {
 
         red.toggle();
         delay.delay_ms(100u16);
-        
-        red.toggle();
-        delay.delay_ms(100u16);
-        
-        red.toggle();
-        delay.delay_ms(100u16);
-        
-        red.toggle();
-        delay.delay_ms(100u16);
-        
+
         red.toggle();
         delay.delay_ms(100u16);
 
+        red.toggle();
+        delay.delay_ms(100u16);
+
+        red.toggle();
+        delay.delay_ms(100u16);
+
+        red.toggle();
+        delay.delay_ms(100u16);
 
         green.toggle();
         delay.delay_ms(100u16);
-        
+
         green.toggle();
         delay.delay_ms(100u16);
-        
+
         green.toggle();
         delay.delay_ms(100u16);
-        
+
         green.toggle();
         delay.delay_ms(100u16);
-        
+
         green.toggle();
         delay.delay_ms(100u16);
-        
+
         green.toggle();
         delay.delay_ms(100u16);
     }

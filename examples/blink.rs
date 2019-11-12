@@ -20,10 +20,7 @@ fn main() -> ! {
     let mut red = leds.red;
     let mut green = leds.green;
 
-    let mut delay = systick::SystickDelay::new(
-        tomu.SYST.constrain(),
-        clk_mgmt.hfcoreclk,
-    );
+    let mut delay = systick::SystickDelay::new(tomu.SYST.constrain(), clk_mgmt.hfcoreclk);
 
     tomu.watchdog.disable();
 
