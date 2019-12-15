@@ -27,7 +27,7 @@ fn main() -> ! {
 
     tomu.watchdog.disable();
 
-    let temp = tomu.DEVINFO.cal.read().temp().bits();
+    let temp = tomu.DEVINFO.cal.read().temp();
     let flash_size = tomu.DEVINFO.msize.read().flash();
     let ram_size = tomu.DEVINFO.msize.read().sram();
 
