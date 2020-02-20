@@ -34,7 +34,6 @@ pub mod prelude {
 /// Holds all available tomu peripherals
 #[allow(non_snake_case)]
 pub struct Tomu {
-    #[allow(dead_code)]
     pub watchdog: efm32_hal::watchdog::Watchdog,
 
     /// Core peripheral: Cache and branch predictor maintenance operations
@@ -81,6 +80,9 @@ pub struct Tomu {
 
     /// efm32 peripheral: CMU
     pub CMU: efm32::CMU,
+
+    /// efm32 peripheral: Device Info read only pages
+    pub DEVINFO: efm32::DEVINFO,
 
     /// efm32 peripheral: DMA
     pub DMA: efm32::DMA,
@@ -173,6 +175,7 @@ impl Tomu {
             ADC0: p.ADC0,
             AES: p.AES,
             CMU: p.CMU,
+            DEVINFO: p.DEVINFO,
             DMA: p.DMA,
             EMU: p.EMU,
             GPIO: p.GPIO,

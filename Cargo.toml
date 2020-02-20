@@ -23,7 +23,7 @@ features = [ "chip-efm32hg" ]
 # We don't have direct dependencies to this,
 # but will need this to build examples
 [dev-dependencies]
-cortex-m-rt = "0.6.10"
+cortex-m-rt = "0.6.11"
 panic-halt = "0.2.0"
 tomu-macros = { path = "macros" }
 
