@@ -25,6 +25,9 @@ pub trait LedTrait {
     fn toggle(&mut self);
 }
 
+pub type GreenLED = LED<PA0<Output<OpenDrain<Normal, PullUp>>>>;
+pub type RedLED = LED<PB7<Output<OpenDrain<Normal, PullUp>>>>;
+
 /// LED struct stores all leds available
 /// in tomu board.
 /// It owns all the leds, but access can be moved per led.

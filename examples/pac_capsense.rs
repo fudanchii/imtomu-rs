@@ -17,7 +17,7 @@
 
 use panic_halt as _;
 
-use core::cell::RefCell;
+use core::cell::{Cell, RefCell};
 use core::ops::DerefMut;
 
 use cortex_m::{asm, interrupt as intr, interrupt::Mutex};
@@ -29,9 +29,13 @@ use tomu::{interrupt, prelude::*, Tomu};
 static _ACMP0: Mutex<RefCell<Option<efm32::ACMP0>>> = Mutex::new(RefCell::new(None));
 static _TIMER0: Mutex<RefCell<Option<efm32::TIMER0>>> = Mutex::new(RefCell::new(None));
 static _TIMER1: Mutex<RefCell<Option<efm32::TIMER1>>> = Mutex::new(RefCell::new(None));
+
 static DELAY: Mutex<RefCell<Option<systick::SystickDelay>>> = Mutex::new(RefCell::new(None));
-static GREENLED: Mutex<RefCell<Option<led::LED<pins::PA0<Output<OpenDrain<Normal, PullUp>>>>>>> =
-    Mutex::new(RefCell::new(None));
+
+static GREENLED: Mutex<RefCell<Option<led::GreenLED>>> = Mutex::new(RefCell::new(None));
+static REDLED: Mutex<RefCell<Option<led::RedLED>>> = Mutex::new(RefCell::new(None));
+
+static CHSWITCH: Mutex<Cell<u8>> = Mutex::new(Cell::new(1));
 
 #[entry]
 fn main() -> ! {
@@ -49,6 +53,8 @@ fn main() -> ! {
     // so we can enable gpio with its owned clock
     let clk_mgmt = tomu.CMU.constrain().split();
     let gpio = tomu.GPIO.split(clk_mgmt.gpio).pins();
+
+    gpio.pc1.into_input();
 
     // create tomu's led instance from gpio pin
     let leds = led::LEDs::new(gpio.pa0.into(), gpio.pb7.into());
@@ -71,6 +77,7 @@ fn main() -> ! {
         _TIMER0.borrow(lock).replace(Some(timer0));
         _TIMER1.borrow(lock).replace(Some(timer1));
         GREENLED.borrow(lock).replace(Some(green));
+        REDLED.borrow(lock).replace(Some(red));
         DELAY.borrow(lock).replace(Some(delay));
     });
 
@@ -89,13 +96,34 @@ fn TIMER1() {
     // faster. Around  ~1 second light period when it's not touched, to
     // 100ms light period when it is touched
     intr::free(|lock| {
-        if let (&mut Some(ref mut green), &mut Some(ref mut delay)) = (
+        if let (&mut Some(ref mut green),
+                &mut Some(ref mut red),
+                &mut Some(ref mut delay),
+                ch) = (
             GREENLED.borrow(lock).borrow_mut().deref_mut(),
+            REDLED.borrow(lock).borrow_mut().deref_mut(),
             DELAY.borrow(lock).borrow_mut().deref_mut(),
+            CHSWITCH.borrow(lock).get(),
         ) {
-            green.on();
-            delay.delay_ms(count / 100);
-            green.off();
+            if (count / 100) > 400 {
+                match ch {
+                    0 => green.off(),
+                    _ => red.off(),
+                }
+                return;
+            }
+            match ch {
+                0 => {
+                    green.on();
+                    delay.delay_ms(count / 100);
+                    green.off();
+                },
+                _ => {
+                    red.on();
+                    delay.delay_ms(count / 100);
+                    red.off();
+                }
+            }
         }
     });
 
@@ -104,10 +132,23 @@ fn TIMER1() {
 
 fn measure_start() {
     intr::free(|lock| {
-        if let (&mut Some(ref mut timer0), &mut Some(ref mut timer1)) = (
+        let ch = CHSWITCH.borrow(lock).get();
+        CHSWITCH.borrow(lock).replace(ch ^ 1);
+
+        if let (&mut Some(ref mut timer0),
+                &mut Some(ref mut timer1),
+                &mut Some(ref mut acmp0),
+                ch) = (
             _TIMER0.borrow(lock).borrow_mut().deref_mut(),
             _TIMER1.borrow(lock).borrow_mut().deref_mut(),
+            _ACMP0.borrow(lock).borrow_mut().deref_mut(),
+            CHSWITCH.borrow(lock).get(),
         ) {
+            if ch == 0 {
+                acmp0.inputsel.modify(|_, w| w.possel().ch0());
+            } else {
+                acmp0.inputsel.modify(|_, w| w.possel().ch1());
+            }
             timer0.cnt.reset();
             timer1.cnt.reset();
             timer0.cmd.write(|w| w.start().set_bit());
@@ -159,8 +200,6 @@ fn acmp0_setup(tomu: &Tomu) {
     });
 
     tomu.ACMP0.ctrl.modify(|_, w| w.en().set_bit());
-
-    tomu.ACMP0.inputsel.modify(|_, w| w.possel().ch0());
 
     while !tomu.ACMP0.status.read().acmpact().bit_is_set() {
         asm::nop();
