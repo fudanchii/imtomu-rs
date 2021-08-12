@@ -13,8 +13,7 @@
 /// periode will be slower and so resulting in smaller counter in TIMER0.
 ///
 /// In this example we normalize the counter and use it as a blink period.
-/// The green led will blink faster when the capsense is touched.
-
+/// The leds will blink faster when the capsense is touched.
 use panic_halt as _;
 
 use core::cell::{Cell, RefCell};
@@ -25,6 +24,14 @@ use cortex_m_rt::entry;
 
 use efm32_hal::gpio::*;
 use tomu::{interrupt, prelude::*, Tomu};
+
+// NOTE: the following value follows the mcu frequency divided by 1024
+// e.g.
+// 1367 -> 14 MHz
+// 2051 -> 21 MHz
+const TIMER1_TOP_VALUE: u16 = 1367u16;
+
+const CAPSENSE_THRESHOLD_VALUE: u16 = 400;
 
 static _ACMP0: Mutex<RefCell<Option<efm32::ACMP0>>> = Mutex::new(RefCell::new(None));
 static _TIMER0: Mutex<RefCell<Option<efm32::TIMER0>>> = Mutex::new(RefCell::new(None));
@@ -54,25 +61,35 @@ fn main() -> ! {
     let clk_mgmt = tomu.CMU.constrain().split();
     let gpio = tomu.GPIO.split(clk_mgmt.gpio).pins();
 
-    gpio.pc1.into_input();
+    // NOTE: toboot v2.0-rc7 and below has issues with GPIO pin reset
+    // you may want to call the following
+    // gpio.pc1.into_input();
 
     // create tomu's led instance from gpio pin
     let leds = led::LEDs::new(gpio.pa0.into(), gpio.pb7.into());
 
-    let mut red = leds.red;
+    let red = leds.red;
     let green = leds.green;
 
+    // NOTE: toboot v2.0-rc7 and earlier has issues with GPIO pin reset
+    // you may want to use the following version instead
+    // let mut red = leds.red;
+    // let green = leds.green;
+    //
+    // red.off();
+    //
+
     let delay = systick::SystickDelay::new(tomu.SYST.constrain(), clk_mgmt.hfcoreclk);
-
-    red.off();
-
-    efm32::NVIC::unpend(interrupt::TIMER1);
-    tomu.NVIC.enable(interrupt::TIMER1);
 
     let acmp0 = tomu.ACMP0;
     let timer0 = tomu.TIMER0;
     let timer1 = tomu.TIMER1;
     intr::free(|lock| {
+        efm32::NVIC::unpend(interrupt::TIMER1);
+        unsafe {
+            efm32::NVIC::unmask(interrupt::TIMER1);
+        }
+
         _ACMP0.borrow(lock).replace(Some(acmp0));
         _TIMER0.borrow(lock).replace(Some(timer0));
         _TIMER1.borrow(lock).replace(Some(timer1));
@@ -96,16 +113,15 @@ fn TIMER1() {
     // faster. Around  ~1 second light period when it's not touched, to
     // 100ms light period when it is touched
     intr::free(|lock| {
-        if let (&mut Some(ref mut green),
-                &mut Some(ref mut red),
-                &mut Some(ref mut delay),
-                ch) = (
+        if let (&mut Some(ref mut green), &mut Some(ref mut red), &mut Some(ref mut delay), ch) = (
             GREENLED.borrow(lock).borrow_mut().deref_mut(),
             REDLED.borrow(lock).borrow_mut().deref_mut(),
             DELAY.borrow(lock).borrow_mut().deref_mut(),
             CHSWITCH.borrow(lock).get(),
         ) {
-            if (count / 100) > 400 {
+            let scaled_count = count / 100;
+            if scaled_count > CAPSENSE_THRESHOLD_VALUE {
+                // not touched
                 match ch {
                     0 => green.off(),
                     _ => red.off(),
@@ -114,13 +130,15 @@ fn TIMER1() {
             }
             match ch {
                 0 => {
+                    // channel 0 touched
                     green.on();
-                    delay.delay_ms(count / 100);
+                    delay.delay_ms(scaled_count);
                     green.off();
-                },
+                }
                 _ => {
+                    // channel 1 touched
                     red.on();
-                    delay.delay_ms(count / 100);
+                    delay.delay_ms(scaled_count);
                     red.off();
                 }
             }
@@ -135,10 +153,12 @@ fn measure_start() {
         let ch = CHSWITCH.borrow(lock).get();
         CHSWITCH.borrow(lock).replace(ch ^ 1);
 
-        if let (&mut Some(ref mut timer0),
-                &mut Some(ref mut timer1),
-                &mut Some(ref mut acmp0),
-                ch) = (
+        if let (
+            &mut Some(ref mut timer0),
+            &mut Some(ref mut timer1),
+            &mut Some(ref mut acmp0),
+            ch,
+        ) = (
             _TIMER0.borrow(lock).borrow_mut().deref_mut(),
             _TIMER1.borrow(lock).borrow_mut().deref_mut(),
             _ACMP0.borrow(lock).borrow_mut().deref_mut(),
@@ -228,6 +248,8 @@ fn timer_setup(tomu: &Tomu) {
     tomu.TIMER1.ctrl.write(|w| w.presc().div1024());
 
     // scan time 100ms
-    tomu.TIMER1.top.write(|w| unsafe { w.top().bits(2051u16) });
+    tomu.TIMER1
+        .top
+        .write(|w| unsafe { w.top().bits(TIMER1_TOP_VALUE) });
     tomu.TIMER1.ien.write(|w| w.of().set_bit());
 }

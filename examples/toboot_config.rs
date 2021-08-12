@@ -1,7 +1,6 @@
 #![no_std]
 #![no_main]
 
-
 // For non-examples (i.e. an actual crate)
 // tomu_macros don't need to be explicitly
 // imported, tomu can be built with `toboot-custom-config` feature
