@@ -109,9 +109,9 @@ fn main() -> ! {
 fn TIMER1() {
     let count = measure_stop();
 
-    // capacitance will be lower if capsense get touched, so the green led will blinking
-    // faster. Around  ~1 second light period when it's not touched, to
-    // 100ms light period when it is touched
+    // NOTE: Capacitance will be lower if capsense get touched, so the led will blinks
+    // faster. With the counter threshold set, no leds will be on if the capsense
+    // is not touched.
     intr::free(|lock| {
         if let (&mut Some(ref mut green), &mut Some(ref mut red), &mut Some(ref mut delay), ch) = (
             GREENLED.borrow(lock).borrow_mut().deref_mut(),
