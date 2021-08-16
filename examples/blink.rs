@@ -3,38 +3,22 @@
 
 use cortex_m_rt::entry;
 use panic_halt as _;
-use tomu::{prelude::*, Tomu};
+use tomu::{prelude::*, EFM32HG};
 
 #[entry]
 fn main() -> ! {
-    let mut tomu = Tomu::take().unwrap();
-
-    // constrain CMU and split into device clocks
-    // so we can enable gpio with its owned clock
-    let clk_mgmt = tomu.CMU.constrain().split();
-    let gpio = tomu.GPIO.split(clk_mgmt.gpio).pins();
-
-    // create tomu's led instance from gpio pin
-    let leds = led::LEDs::new(gpio.pa0.into(), gpio.pb7.into());
-
-    let mut red = leds.red;
-    let mut green = leds.green;
-
-    let mut delay = systick::SystickDelay::new(
-        tomu.SYST.constrain(),
-        clk_mgmt.hfcoreclk,
-    );
+    let mut tomu = EFM32HG::take().unwrap().constrain();
 
     tomu.watchdog.disable();
 
     loop {
-        red.on();
-        delay.delay_ms(500u16);
-        green.on();
-        delay.delay_ms(500u16);
-        red.off();
-        delay.delay_ms(500u16);
-        green.off();
-        delay.delay_ms(500u16);
+        tomu.leds.red.on();
+        tomu.delay.delay_ms(500u16);
+        tomu.leds.green.on();
+        tomu.delay.delay_ms(500u16);
+        tomu.leds.red.off();
+        tomu.delay.delay_ms(500u16);
+        tomu.leds.green.off();
+        tomu.delay.delay_ms(500u16);
     }
 }
