@@ -22,8 +22,8 @@ use core::ops::DerefMut;
 use cortex_m::{asm, interrupt as intr, interrupt::Mutex};
 use cortex_m_rt::entry;
 
-use efm32_hal::gpio::*;
-use tomu::{interrupt, prelude::*, Tomu};
+use efm32_hal::delay;
+use tomu::{interrupt, prelude::*};
 
 // NOTE: the following value follows the mcu frequency divided by 1024
 // e.g.
@@ -37,7 +37,7 @@ static _ACMP0: Mutex<RefCell<Option<efm32::ACMP0>>> = Mutex::new(RefCell::new(No
 static _TIMER0: Mutex<RefCell<Option<efm32::TIMER0>>> = Mutex::new(RefCell::new(None));
 static _TIMER1: Mutex<RefCell<Option<efm32::TIMER1>>> = Mutex::new(RefCell::new(None));
 
-static DELAY: Mutex<RefCell<Option<systick::SystickDelay>>> = Mutex::new(RefCell::new(None));
+static DELAY: Mutex<RefCell<Option<delay::Delay>>> = Mutex::new(RefCell::new(None));
 
 static GREENLED: Mutex<RefCell<Option<led::GreenLED>>> = Mutex::new(RefCell::new(None));
 static REDLED: Mutex<RefCell<Option<led::RedLED>>> = Mutex::new(RefCell::new(None));
@@ -46,44 +46,31 @@ static CHSWITCH: Mutex<Cell<u8>> = Mutex::new(Cell::new(1));
 
 #[entry]
 fn main() -> ! {
-    let mut tomu = Tomu::take().unwrap();
+    let efm32 = EFM32HG::take().unwrap();
 
+    clock_setup(&efm32);
+
+    acmp0_setup(&efm32);
+
+    timer_setup(&efm32);
+
+    let acmp0 = efm32.ACMP0;
+    let timer0 = efm32.TIMER0;
+    let timer1 = efm32.TIMER1;
+
+    let mut tomu = Tomu::from_parts(efm32.CMU, efm32.WDOG, efm32.GPIO, efm32.SYST);
     tomu.watchdog.disable();
-
-    clock_setup(&tomu);
-
-    acmp0_setup(&tomu);
-
-    timer_setup(&tomu);
-
-    // constrain CMU and split into device clocks
-    // so we can enable gpio with its owned clock
-    let clk_mgmt = tomu.CMU.constrain().split();
-    let gpio = tomu.GPIO.split(clk_mgmt.gpio).pins();
 
     // NOTE: toboot v2.0-rc7 and below has issues with GPIO pin reset
     // you may want to call the following
-    // gpio.pc1.into_input();
-
-    // create tomu's led instance from gpio pin
-    let leds = led::LEDs::new(gpio.pa0.into(), gpio.pb7.into());
-
-    let red = leds.red;
-    let green = leds.green;
+    // tomu.gpio.pc1.into_input();
 
     // NOTE: toboot v2.0-rc7 and earlier has issues with GPIO pin reset
-    // you may want to use the following version instead
-    // let mut red = leds.red;
-    // let green = leds.green;
+    // you may want to call the following
     //
-    // red.off();
+    // tomu.leds.red.off();
     //
 
-    let delay = systick::SystickDelay::new(tomu.SYST.constrain(), clk_mgmt.hfcoreclk);
-
-    let acmp0 = tomu.ACMP0;
-    let timer0 = tomu.TIMER0;
-    let timer1 = tomu.TIMER1;
     intr::free(|lock| {
         efm32::NVIC::unpend(interrupt::TIMER1);
         unsafe {
@@ -93,9 +80,9 @@ fn main() -> ! {
         _ACMP0.borrow(lock).replace(Some(acmp0));
         _TIMER0.borrow(lock).replace(Some(timer0));
         _TIMER1.borrow(lock).replace(Some(timer1));
-        GREENLED.borrow(lock).replace(Some(green));
-        REDLED.borrow(lock).replace(Some(red));
-        DELAY.borrow(lock).replace(Some(delay));
+        GREENLED.borrow(lock).replace(Some(tomu.leds.green));
+        REDLED.borrow(lock).replace(Some(tomu.leds.red));
+        DELAY.borrow(lock).replace(Some(tomu.delay));
     });
 
     measure_start();
@@ -193,8 +180,8 @@ fn measure_stop() -> u16 {
     })
 }
 
-fn clock_setup(tomu: &Tomu) {
-    tomu.CMU.hfperclken0.modify(|_, w| {
+fn clock_setup(efm32: &EFM32HG) {
+    efm32.CMU.hfperclken0.modify(|_, w| {
         w.acmp0().set_bit()
          .timer0().set_bit()
          .timer1().set_bit()
@@ -202,8 +189,8 @@ fn clock_setup(tomu: &Tomu) {
     });
 }
 
-fn acmp0_setup(tomu: &Tomu) {
-    tomu.ACMP0.ctrl.write(|w| unsafe {
+fn acmp0_setup(efm32: &EFM32HG) {
+    efm32.ACMP0.ctrl.write(|w| unsafe {
         w.fullbias().clear_bit()
          .halfbias().clear_bit()
          .biasprog().bits(7u8)
@@ -211,7 +198,7 @@ fn acmp0_setup(tomu: &Tomu) {
          .hystsel().hyst5()
     });
 
-    tomu.ACMP0.inputsel.write(|w| unsafe {
+    efm32.ACMP0.inputsel.write(|w| unsafe {
         w.csressel().res3()
          .csresen().set_bit()
          .lpref().clear_bit()
@@ -219,21 +206,21 @@ fn acmp0_setup(tomu: &Tomu) {
          .negsel().capsense()
     });
 
-    tomu.ACMP0.ctrl.modify(|_, w| w.en().set_bit());
+    efm32.ACMP0.ctrl.modify(|_, w| w.en().set_bit());
 
-    while !tomu.ACMP0.status.read().acmpact().bit_is_set() {
+    while !efm32.ACMP0.status.read().acmpact().bit_is_set() {
         asm::nop();
     }
 }
 
-fn timer_setup(tomu: &Tomu) {
-    tomu.TIMER0
+fn timer_setup(efm32: &EFM32HG) {
+    efm32.TIMER0
         .ctrl
         .write(|w| w.presc().div1024().clksel().cc1());
 
-    tomu.TIMER0.top.reset();
+    efm32.TIMER0.top.reset();
 
-    tomu.TIMER0.cc1_ctrl.write(|w| {
+    efm32.TIMER0.cc1_ctrl.write(|w| {
         w.mode().inputcapture()
          .prssel().prsch0()
          .insel().set_bit()
@@ -241,15 +228,15 @@ fn timer_setup(tomu: &Tomu) {
          .icedge().both()
     });
 
-    tomu.PRS
+    efm32.PRS
         .ch0_ctrl
         .write(|w| unsafe { w.edsel().posedge().sourcesel().acmp0().sigsel().bits(0u8) });
 
-    tomu.TIMER1.ctrl.write(|w| w.presc().div1024());
+    efm32.TIMER1.ctrl.write(|w| w.presc().div1024());
 
     // scan time 100ms
-    tomu.TIMER1
+    efm32.TIMER1
         .top
         .write(|w| unsafe { w.top().bits(TIMER1_TOP_VALUE) });
-    tomu.TIMER1.ien.write(|w| w.of().set_bit());
+    efm32.TIMER1.ien.write(|w| w.of().set_bit());
 }

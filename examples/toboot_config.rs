@@ -9,7 +9,7 @@ use tomu_macros::toboot_config;
 
 use cortex_m_rt::entry;
 use panic_halt as _;
-use tomu::{prelude::*, Tomu};
+use tomu::prelude::*;
 
 // this will cause tomu to always enter user application,
 // short the 2 pins on the corner while inserting tomu to
@@ -20,18 +20,10 @@ toboot_config! {
 
 #[entry]
 fn main() -> ! {
-    let mut tomu = Tomu::take().unwrap();
+    let mut tomu = Tomu::from(EFM32HG::take().unwrap());
 
-    let clk_mgmt = tomu.CMU.constrain().split();
-    let gpio = tomu.GPIO.split(clk_mgmt.gpio).pins();
-
-    let leds = led::LEDs::new(gpio.pa0.into(), gpio.pb7.into());
-
-    let mut red = leds.red;
-    let mut green = leds.green;
-
-    red.off();
-    green.on();
+    tomu.leds.red.off();
+    tomu.leds.green.on();
 
     loop {
         tomu.watchdog.feed();
