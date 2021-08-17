@@ -3,11 +3,11 @@
 
 use cortex_m_rt::entry;
 use panic_halt as _;
-use tomu::{prelude::*, EFM32HG};
+use tomu::prelude::*;
 
 #[entry]
 fn main() -> ! {
-    let mut tomu = EFM32HG::take().unwrap().constrain();
+    let mut tomu = Tomu::from(EFM32HG::take().unwrap());
 
     tomu.watchdog.disable();
 

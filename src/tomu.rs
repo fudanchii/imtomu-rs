@@ -2,22 +2,27 @@ use efm32_hal::{
     watchdog::{Watchdog, WatchdogExt},
     cmu::CMUExt, gpio::GPIOExt,
     gpio::pins, gpio::common::{Disabled, Floating},
+    delay::{CountProvider, Delay},
+    systick::{SystickDelay, SystickExt},
 };
 use crate::led::LEDs;
 
 pub struct Tomu {
-    gpio: TomuFreeGPIO,
-    leds: LEDs,
-    watchdog: Watchdog,
+    pub gpio: TomuFreeGPIO,
+    pub leds: LEDs,
+    pub delay: Delay,
+    pub watchdog: Watchdog,
 }
 
 impl Tomu {
-    pub fn from(efm32: crate::EFM32HG) -> Self {
-        let cmu = efm32.CMU.constrain().freeze();
-        let gpio = efm32.GPIO.constrain(cmu.gpio_clock).split();
+    pub fn from_parts(cmu: efm32::CMU, wdog: efm32::WDOG, gpio: efm32::GPIO, syst: efm32::SYST) -> Self {
+        let clocks = cmu.constrain().freeze();
+        let systick_delay = SystickDelay::new(syst.constrain(), &clocks);
+        let gpio = gpio.constrain(clocks.gpio).split();
         Self {
-            watchdog: efm32.WDOG.constrain(),
+            watchdog: wdog.constrain(),
             leds: LEDs::new(gpio.pa0.into(), gpio.pb7.into()),
+            delay: Delay::new(CountProvider::SysTick(systick_delay)),
             gpio: TomuFreeGPIO {
                 pb8: gpio.pb8,
                 pb11: gpio.pb11,
@@ -34,6 +39,9 @@ impl Tomu {
                 pf2: gpio.pf2,
             },
         }
+    }
+    pub fn from(efm32: crate::EFM32HG) -> Self {
+        Self::from_parts(efm32.CMU, efm32.WDOG, efm32.GPIO, efm32.SYST)
     }
 }
 

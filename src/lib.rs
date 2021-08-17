@@ -33,4 +33,6 @@ pub mod prelude {
 
     pub use crate::led;
     pub use crate::led::LedTrait;
+    pub use crate::efm32hg::EFM32HG;
+    pub use crate::tomu::Tomu;
 }
