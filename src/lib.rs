@@ -12,7 +12,6 @@ pub mod led;
 pub mod uart;
 pub mod usb;
 pub mod efm32hg;
-pub use efm32hg::EFM32HG;
 pub mod tomu;
 pub use tomu::Tomu;
 
@@ -33,6 +32,6 @@ pub mod prelude {
 
     pub use crate::led;
     pub use crate::led::LedTrait;
-    pub use crate::efm32hg::EFM32HG;
+    pub use crate::efm32hg;
     pub use crate::tomu::Tomu;
 }

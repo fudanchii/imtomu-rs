@@ -21,44 +21,44 @@ static GREEN: Mutex<RefCell<Option<led::GreenLED>>> = Mutex::new(RefCell::new(No
 
 #[entry]
 fn main() -> ! {
-    let efm32hg = EFM32HG::take().unwrap();
+    let dp = efm32hg::Peripherals::take().unwrap();
 
     // Configure clock to RTC:
     //  * LFRCO ticks at 32768 Hz
     //  * No clock divider
-    efm32hg.CMU.hfcoreclken0.write(|w| w.le().set_bit());
-    efm32hg.CMU.oscencmd.write(|w| w.lfrcoen().set_bit());
-    efm32hg.CMU.lfapresc0.reset();
-    efm32hg.CMU.lfclksel.write(|w| w.lfa().lfrco());
+    dp.CMU.hfcoreclken0.write(|w| w.le().set_bit());
+    dp.CMU.oscencmd.write(|w| w.lfrcoen().set_bit());
+    dp.CMU.lfapresc0.reset();
+    dp.CMU.lfclksel.write(|w| w.lfa().lfrco());
 
     // Enable clock to RTC, ticking at 32 KiHz.
-    efm32hg.CMU.lfaclken0.write(|w| w.rtc().set_bit());
+    dp.CMU.lfaclken0.write(|w| w.rtc().set_bit());
 
     // Reset RTC
-    efm32hg.RTC.freeze.reset();
-    efm32hg.RTC.ctrl.reset();
-    efm32hg.RTC.ien.reset();
-    efm32hg.RTC.ifc
+    dp.RTC.freeze.reset();
+    dp.RTC.ctrl.reset();
+    dp.RTC.ien.reset();
+    dp.RTC.ifc
         .write(|w| w.comp0().set_bit().comp1().set_bit().of().set_bit());
-    efm32hg.RTC.comp0.reset();
-    efm32hg.RTC.comp1.reset();
+    dp.RTC.comp0.reset();
+    dp.RTC.comp1.reset();
 
     // Interrupt when matching custom compare value:
     // 65536 / 32768 Hz = 2 secs
-    efm32hg.RTC.comp0.write(|w| unsafe { w.comp0().bits(65_536) });
-    efm32hg.RTC.ien.modify(|_, w| w.comp0().set_bit());
+    dp.RTC.comp0.write(|w| unsafe { w.comp0().bits(65_536) });
+    dp.RTC.ien.modify(|_, w| w.comp0().set_bit());
 
     // Cap counter at `comp0` value.
-    efm32hg.RTC.ctrl.modify(|_, w| w.comp0top().set_bit());
+    dp.RTC.ctrl.modify(|_, w| w.comp0top().set_bit());
 
     // Enable RTC interrupts.
     efm32::NVIC::unpend(efm32::Interrupt::RTC);
     unsafe { efm32::NVIC::unmask(efm32::Interrupt::RTC) };
 
     // Start RTC.
-    efm32hg.RTC.ctrl.modify(|_, w| w.en().set_bit());
+    dp.RTC.ctrl.modify(|_, w| w.en().set_bit());
 
-    let mut tomu = Tomu::from(efm32hg);
+    let mut tomu = Tomu::from(dp);
     tomu.watchdog.disable();
 
     tomu.leds.red.off();

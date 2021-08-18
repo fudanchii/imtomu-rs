@@ -5,6 +5,7 @@ use efm32_hal::{
     delay::{CountProvider, Delay},
     systick::{SystickDelay, SystickExt},
 };
+use crate::efm32hg;
 use crate::led::LEDs;
 
 pub struct Tomu {
@@ -40,7 +41,7 @@ impl Tomu {
             },
         }
     }
-    pub fn from(efm32: crate::EFM32HG) -> Self {
+    pub fn from(efm32: efm32hg::Peripherals) -> Self {
         Self::from_parts(efm32.CMU, efm32.WDOG, efm32.GPIO, efm32.SYST)
     }
 }

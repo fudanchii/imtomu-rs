@@ -7,7 +7,7 @@ use tomu::prelude::*;
 
 #[entry]
 fn main() -> ! {
-    let efm32 = EFM32HG::take().unwrap();
+    let efm32 = efm32hg::Peripherals::take().unwrap();
 
     let temp = efm32.DEVINFO.cal.read().temp();
     let flash_size = efm32.DEVINFO.msize.read().flash();

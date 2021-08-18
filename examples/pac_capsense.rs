@@ -46,7 +46,7 @@ static CHSWITCH: Mutex<Cell<u8>> = Mutex::new(Cell::new(1));
 
 #[entry]
 fn main() -> ! {
-    let efm32 = EFM32HG::take().unwrap();
+    let efm32 = efm32hg::Peripherals::take().unwrap();
 
     clock_setup(&efm32);
 
@@ -180,7 +180,7 @@ fn measure_stop() -> u16 {
     })
 }
 
-fn clock_setup(efm32: &EFM32HG) {
+fn clock_setup(efm32: &efm32hg::Peripherals) {
     efm32.CMU.hfperclken0.modify(|_, w| {
         w.acmp0().set_bit()
          .timer0().set_bit()
@@ -189,7 +189,7 @@ fn clock_setup(efm32: &EFM32HG) {
     });
 }
 
-fn acmp0_setup(efm32: &EFM32HG) {
+fn acmp0_setup(efm32: &efm32hg::Peripherals) {
     efm32.ACMP0.ctrl.write(|w| unsafe {
         w.fullbias().clear_bit()
          .halfbias().clear_bit()
@@ -213,7 +213,7 @@ fn acmp0_setup(efm32: &EFM32HG) {
     }
 }
 
-fn timer_setup(efm32: &EFM32HG) {
+fn timer_setup(efm32: &efm32hg::Peripherals) {
     efm32.TIMER0
         .ctrl
         .write(|w| w.presc().div1024().clksel().cc1());
