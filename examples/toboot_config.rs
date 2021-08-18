@@ -20,7 +20,7 @@ toboot_config! {
 
 #[entry]
 fn main() -> ! {
-    let mut tomu = Tomu::from(EFM32HG::take().unwrap());
+    let mut tomu = Tomu::from(efm32hg::Peripherals::take().unwrap());
 
     tomu.leds.red.off();
     tomu.leds.green.on();

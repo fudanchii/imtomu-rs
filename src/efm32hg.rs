@@ -3,7 +3,7 @@ use crate::tomu::Tomu;
 
 /// Holds all available tomu peripherals
 #[allow(non_snake_case)]
-pub struct EFM32HG {
+pub struct Peripherals {
     /// Core peripheral: Cache and branch predictor maintenance operations
     pub CBP: efm32::CBP,
 
@@ -116,7 +116,7 @@ pub struct EFM32HG {
     pub WDOG: efm32::WDOG,
 }
 
-impl EFM32HG {
+impl Peripherals {
     /// Take `Peripherals`  instance, this is called `take`
     /// since we also take efm32's own `Peripherals` which will
     /// cause this method to panic if it's called more than once.
