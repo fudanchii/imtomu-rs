@@ -1,6 +1,6 @@
 [package]
 name = "tomu"
-version = "0.2.0"
+version = "0.2.1"
 authors = [ "Nurahmadie <nurahmadie@gmail.com>" ]
 edition = "2018"
 
@@ -13,11 +13,13 @@ cast = { version = "0.2.2", default-features = false }
 [dependencies.efm32]
 git = "https://github.com/em32-rs/efm32hg-pac"
 package = "efm32hg-pac"
+tag = "v0.1.0"
 
 [dependencies.efm32-hal]
 git = "https://github.com/fudanchii/efm32hg-hal"
 package = "efm32hg-hal"
 features = [ "chip-efm32hg" ]
+tag = "v0.4.1"
 
 # We don't have direct dependencies to this,
 # but will need this to build examples
