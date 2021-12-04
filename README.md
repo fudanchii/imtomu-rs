@@ -1,4 +1,4 @@
-imtomu-rs [![Build Status](https://travis-ci.com/fudanchii/imtomu-rs.svg?branch=master)](https://travis-ci.com/fudanchii/imtomu-rs)
+imtomu-rs
 ---
 
 Board support crate targeted for [Tim's Open Micro USB](http://tomu.im/)
