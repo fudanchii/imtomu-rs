@@ -9,9 +9,9 @@ use tomu::prelude::*;
 fn main() -> ! {
     let efm32 = efm32hg::Peripherals::take().unwrap();
 
-    let temp = efm32.DEVINFO.cal.read().temp();
-    let flash_size = efm32.DEVINFO.msize.read().flash();
-    let ram_size = efm32.DEVINFO.msize.read().sram();
+    let temp = efm32.DEVINFO.cal.read().temp().bits();
+    let flash_size = efm32.DEVINFO.msize.read().flash().bits();
+    let ram_size = efm32.DEVINFO.msize.read().sram().bits();
 
     let mut tomu = Tomu::from(efm32);
 

@@ -19,9 +19,6 @@ pub struct Peripherals {
     /// Core peripheral: Flash Patch and Breakpoint unit
     pub FPB: efm32::FPB,
 
-    /// Core peripheral: Floating Point Unit
-    pub FPU: efm32::FPU,
-
     /// Core peripheral: Instrumentation Trace Macrocell
     pub ITM: efm32::ITM,
 
@@ -131,7 +128,6 @@ impl Peripherals {
             DCB: cp.DCB,
             DWT: cp.DWT,
             FPB: cp.FPB,
-            FPU: cp.FPU,
             ITM: cp.ITM,
             MPU: cp.MPU,
             NVIC: cp.NVIC,
