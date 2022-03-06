@@ -208,8 +208,10 @@ fn acmp0_setup(efm32: &efm32hg::Peripherals) {
 
     efm32.ACMP0.ctrl.modify(|_, w| w.en().set_bit());
 
-    while !efm32.ACMP0.status.read().acmpact().bit_is_set() {
-        asm::nop();
+    loop {
+        if efm32.ACMP0.status.read().acmpact().bit_is_set() {
+            break;
+        }
     }
 }
 
