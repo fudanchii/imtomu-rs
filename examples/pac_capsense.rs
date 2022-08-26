@@ -19,8 +19,10 @@ use panic_halt as _;
 use core::cell::{Cell, RefCell};
 use core::ops::DerefMut;
 
-use cortex_m::{asm, interrupt as intr, interrupt::Mutex};
+use cortex_m::asm;
 use cortex_m_rt::entry;
+
+use critical_section::Mutex;
 
 use efm32_hal::delay;
 use tomu::{interrupt, prelude::*};
@@ -71,7 +73,7 @@ fn main() -> ! {
     // tomu.leds.red.off();
     //
 
-    intr::free(|lock| {
+    critical_section::with(|lock| {
         efm32::NVIC::unpend(interrupt::TIMER1);
         unsafe {
             efm32::NVIC::unmask(interrupt::TIMER1);
@@ -99,7 +101,7 @@ fn TIMER1() {
     // NOTE: Capacitance will be lower if capsense get touched, so the led will blinks
     // faster. With the counter threshold set, no leds will be on if the capsense
     // is not touched.
-    intr::free(|lock| {
+    critical_section::with(|lock| {
         if let (&mut Some(ref mut green), &mut Some(ref mut red), &mut Some(ref mut delay), ch) = (
             GREENLED.borrow(lock).borrow_mut().deref_mut(),
             REDLED.borrow(lock).borrow_mut().deref_mut(),
@@ -136,7 +138,7 @@ fn TIMER1() {
 }
 
 fn measure_start() {
-    intr::free(|lock| {
+    critical_section::with(|lock| {
         let ch = CHSWITCH.borrow(lock).get();
         CHSWITCH.borrow(lock).replace(ch ^ 1);
 
@@ -165,7 +167,7 @@ fn measure_start() {
 }
 
 fn measure_stop() -> u16 {
-    intr::free(|lock| {
+    critical_section::with(|lock| {
         if let (&mut Some(ref mut timer0), &mut Some(ref mut timer1)) = (
             _TIMER0.borrow(lock).borrow_mut().deref_mut(),
             _TIMER1.borrow(lock).borrow_mut().deref_mut(),

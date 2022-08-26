@@ -12,7 +12,7 @@
 
 use core::cell::RefCell;
 use core::ops::DerefMut;
-use cortex_m::interrupt::Mutex;
+use critical_section::Mutex;
 use cortex_m_rt::entry;
 use panic_halt as _;
 use tomu::{efm32, efm32::interrupt, prelude::*};
@@ -64,7 +64,7 @@ fn main() -> ! {
     tomu.leds.red.off();
     tomu.leds.green.off();
 
-    cortex_m::interrupt::free(|lock| {
+    critical_section::with(|lock| {
         GREEN.borrow(lock).replace(Some(tomu.leds.green));
     });
 
@@ -78,7 +78,7 @@ fn main() -> ! {
 #[interrupt]
 fn RTC() {
     let rtc = unsafe { &*tomu::efm32::RTC::ptr() };
-    cortex_m::interrupt::free(|lock| {
+    critical_section::with(|lock| {
         // Clear interrupt.
         rtc.ifc.write(|w| w.comp0().set_bit());
 

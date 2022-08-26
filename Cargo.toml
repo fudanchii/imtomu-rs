@@ -5,14 +5,15 @@ authors = [ "Nurahmadie <nurahmadie@gmail.com>" ]
 edition = "2021"
 
 [dependencies]
-cortex-m = "0.7.3"
+cortex-m = { version = "0.7.6", features = ["critical-section-single-core"] }
 tomu-macros = { path = "macros", optional = true }
 embedded-hal = "0.2.6"
 cast = { version = "0.2.2", default-features = false }
+critical-section = "1.1.0"
 
 [dependencies.efm32]
 package = "efm32hg309f64-pac"
-version = "^0.2.1"
+version = "0.2.1"
 
 [dependencies.efm32-hal]
 git = "https://github.com/fudanchii/efm32hg-hal"
@@ -21,7 +22,7 @@ package = "efm32hg-hal"
 # We don't have direct dependencies to this,
 # but will need this to build examples
 [dev-dependencies]
-cortex-m-rt = "^0.7.1"
+cortex-m-rt = "0.7.1"
 panic-halt = "0.2.0"
 tomu-macros = { path = "macros" }
 
